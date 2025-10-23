@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Auth check disabled during prototyping
   // useEffect(() => {
@@ -36,6 +37,31 @@ export default function DashboardPage() {
   const uniqueStatuses = useMemo(() => {
     const statuses = new Set(services.map((s) => s.status).filter(Boolean));
     return Array.from(statuses);
+  }, [services]);
+
+  // Group services by user (for "by-user" view)
+  const userGroups = useMemo(() => {
+    const groups = new Map<string, {
+      user: { id: string; fullName: string; email: string };
+      services: ServiceWithRelations[];
+    }>();
+
+    services.forEach((service) => {
+      const userId = service.user.id;
+      if (!groups.has(userId)) {
+        groups.set(userId, {
+          user: {
+            id: service.user.id,
+            fullName: service.user.fullName,
+            email: service.user.email,
+          },
+          services: [],
+        });
+      }
+      groups.get(userId)!.services.push(service as ServiceWithRelations);
+    });
+
+    return Array.from(groups.values());
   }, [services]);
 
   // Toggle status selection
@@ -65,9 +91,23 @@ export default function DashboardPage() {
       const matchesDateFrom = !dateFrom || serviceDate >= new Date(dateFrom);
       const matchesDateTo = !dateTo || serviceDate <= new Date(dateTo + "T23:59:59");
 
-      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+      // User filter (when a user is selected in by-user mode)
+      const matchesUser = !selectedUserId || service.user.id === selectedUserId;
+
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo && matchesUser;
     });
-  }, [services, search, selectedStatuses, dateFrom, dateTo]);
+  }, [services, search, selectedStatuses, dateFrom, dateTo, selectedUserId]);
+
+  // Filter users by search
+  const filteredUsers = useMemo(() => {
+    return userGroups.filter((group) => {
+      const matchesSearch =
+        search === "" ||
+        group.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
+        group.user.email.toLowerCase().includes(search.toLowerCase());
+      return matchesSearch;
+    });
+  }, [userGroups, search]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,7 +142,10 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* View Mode Toggle */}
             <button
-              onClick={() => setViewMode("all")}
+              onClick={() => {
+                setViewMode("all");
+                setSelectedUserId(null);
+              }}
               className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "all"
                   ? "bg-blue-600 text-white"
@@ -112,7 +155,10 @@ export default function DashboardPage() {
               📁 <span className="hidden sm:inline">Todos Processos</span><span className="sm:hidden">Todos</span>
             </button>
             <button
-              onClick={() => setViewMode("by-user")}
+              onClick={() => {
+                setViewMode("by-user");
+                setSelectedUserId(null);
+              }}
               className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "by-user"
                   ? "bg-blue-600 text-white"
@@ -249,86 +295,179 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="p-3 sm:p-8">
+        {/* Header com breadcrumb se usuário selecionado */}
+        {selectedUserId && viewMode === "by-user" && (
+          <div className="mb-4">
+            <button
+              onClick={() => setSelectedUserId(null)}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+            >
+              ← Voltar para todos os usuários
+            </button>
+          </div>
+        )}
+
         <div className="mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold">Processos ({filteredServices.length})</h2>
+          {viewMode === "all" ? (
+            <h2 className="text-xl sm:text-2xl font-bold">Processos ({filteredServices.length})</h2>
+          ) : selectedUserId ? (
+            <h2 className="text-xl sm:text-2xl font-bold">
+              Pedidos do Usuário ({filteredServices.length})
+            </h2>
+          ) : (
+            <h2 className="text-xl sm:text-2xl font-bold">Usuários ({filteredUsers.length})</h2>
+          )}
         </div>
 
         {/* Table */}
         <Card>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Criado Em
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {filteredServices.map((service) => (
-                  <tr
-                    key={service.id}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => setSelectedService(service as ServiceWithRelations)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 font-mono">{service.id}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <a
-                        href={`mailto:${service.user.email}`}
-                        className="text-sm text-blue-600 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {service.user.email}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={service.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedService(service as ServiceWithRelations);
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                      >
-                        Ver Detalhes
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {filteredServices.length === 0 && (
+            {viewMode === "all" || selectedUserId ? (
+              // TABELA DE PROCESSOS
+              <table className="w-full">
+                <thead className="border-b bg-gray-50">
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      Nenhum processo encontrado
-                    </td>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Criado Em
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {filteredServices.map((service) => (
+                    <tr
+                      key={service.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setSelectedService(service as ServiceWithRelations)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 font-mono">{service.id.slice(0, 8)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <a
+                          href={`mailto:${service.user.email}`}
+                          className="text-sm text-blue-600 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {service.user.email}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={service.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedService(service as ServiceWithRelations);
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                        >
+                          Ver Detalhes
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredServices.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        Nenhum processo encontrado
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              // TABELA DE USUÁRIOS
+              <table className="w-full">
+                <thead className="border-b bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Usuário
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Pedidos
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {filteredUsers.map((group) => (
+                    <tr
+                      key={group.user.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setSelectedUserId(group.user.id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {group.user.fullName.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900">{group.user.fullName}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <a
+                          href={`mailto:${group.user.email}`}
+                          className="text-sm text-blue-600 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {group.user.email}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                          {group.services.length} {group.services.length === 1 ? "pedido" : "pedidos"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedUserId(group.user.id);
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                        >
+                          Ver Pedidos
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                        Nenhum usuário encontrado
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </Card>
       </div>
