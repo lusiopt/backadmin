@@ -263,8 +263,9 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               <TabsContent value="documentos" className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Documentos ({service.documents?.length || 0})</h3>
-                  <label className="cursor-pointer">
+                  <div>
                     <input
+                      id={`file-upload-${service.id}`}
                       type="file"
                       className="hidden"
                       multiple
@@ -287,10 +288,18 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                         }
                       }}
                     />
-                    <Button size="sm" className="text-xs">
+                    <Button
+                      size="sm"
+                      className="text-xs"
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById(`file-upload-${service.id}`) as HTMLInputElement;
+                        if (input) input.click();
+                      }}
+                    >
                       📎 Adicionar Documentos
                     </Button>
-                  </label>
+                  </div>
                 </div>
                 {service.documents && service.documents.length > 0 ? (
                   <div className="space-y-2">
