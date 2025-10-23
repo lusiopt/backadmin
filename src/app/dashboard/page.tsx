@@ -14,7 +14,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { services } = useServices();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"all" | "by-user">("all");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
 
   // Check auth
@@ -27,6 +29,21 @@ export default function DashboardPage() {
     }
   }, [router]);
 
+  // Get unique statuses
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(services.map((s) => s.status).filter(Boolean));
+    return Array.from(statuses);
+  }, [services]);
+
+  // Toggle status selection
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  };
+
   // Filter services
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
@@ -34,129 +51,225 @@ export default function DashboardPage() {
         search === "" ||
         service.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
         service.user.email.toLowerCase().includes(search.toLowerCase()) ||
-        service.processNumber?.toLowerCase().includes(search.toLowerCase());
+        service.processNumber?.toLowerCase().includes(search.toLowerCase()) ||
+        service.id.toLowerCase().includes(search.toLowerCase());
 
-      const matchesStatus = statusFilter === "all" || service.status === statusFilter;
+      const matchesStatus =
+        selectedStatuses.length === 0 || selectedStatuses.includes(service.status || "");
 
       return matchesSearch && matchesStatus;
     });
-  }, [services, search, statusFilter]);
-
-  // Get unique statuses for filter
-  const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(services.map((s) => s.status).filter(Boolean));
-    return Array.from(statuses);
-  }, [services]);
+  }, [services, search, selectedStatuses]);
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Pedidos de Cidadania</h1>
-        <p className="text-gray-600 mt-2">{filteredServices.length} pedidos encontrados</p>
-      </div>
-
-      {/* Filters */}
-      <Card className="p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Buscar</label>
-            <Input
-              type="text"
-              placeholder="Nome, email ou número do processo..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b sticky top-0 z-40">
+        <div className="px-8 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇵🇹</span>
+              <h1 className="text-xl font-bold text-blue-600">Lusio Backoffice</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">Euclides</span>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("isAuthenticated");
+                  router.push("/login");
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Sair
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Filtrar por Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+              <Input
+                type="text"
+                placeholder="Buscar por nome, email ou ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+          </div>
+
+          {/* Horizontal Filters */}
+          <div className="flex items-center gap-3">
+            {/* View Mode Toggle */}
+            <button
+              onClick={() => setViewMode("all")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
-              <option value="all">Todos os status</option>
-              {uniqueStatuses.map((status) => (
-                <option key={status} value={status || ""}>
-                  {status}
-                </option>
-              ))}
-            </select>
+              📁 Todos Processos
+            </button>
+            <button
+              onClick={() => setViewMode("by-user")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === "by-user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              👤 Por Usuário
+            </button>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <button
+                onClick={() => setShowStatusFilter(!showStatusFilter)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedStatuses.length > 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                📊 Status
+                {selectedStatuses.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
+                    {selectedStatuses.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Status Dropdown */}
+              {showStatusFilter && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div className="px-3 py-2 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700">Filtrar por Status</span>
+                      {selectedStatuses.length > 0 && (
+                        <button
+                          onClick={() => setSelectedStatuses([])}
+                          className="text-xs text-blue-600 hover:text-blue-700"
+                        >
+                          Limpar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {uniqueStatuses.map((status) => (
+                      <label
+                        key={status}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedStatuses.includes(status || "")}
+                          onChange={() => toggleStatus(status || "")}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                        />
+                        <StatusBadge status={status} />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Dates Filter (placeholder) */}
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+              📅 Datas
+            </button>
           </div>
         </div>
-      </Card>
+      </header>
 
-      {/* Table */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Processo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data Criação
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {filteredServices.map((service) => (
-                <tr
-                  key={service.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => setSelectedService(service as ServiceWithRelations)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{service.user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={service.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{service.processNumber || "-"}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedService(service as ServiceWithRelations);
-                      }}
-                      className="text-primary hover:text-primary/80 font-medium"
-                    >
-                      Ver Detalhes →
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredServices.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    Nenhum pedido encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Main Content */}
+      <div className="p-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">Processos ({filteredServices.length})</h2>
         </div>
-      </Card>
+
+        {/* Table */}
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Criado Em
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {filteredServices.map((service) => (
+                  <tr
+                    key={service.id}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => setSelectedService(service as ServiceWithRelations)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500 font-mono">{service.id}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <a
+                        href={`mailto:${service.user.email}`}
+                        className="text-sm text-blue-600 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {service.user.email}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={service.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedService(service as ServiceWithRelations);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                      >
+                        Ver Detalhes
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredServices.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      Nenhum processo encontrado
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
 
       {/* Service Modal */}
       {selectedService && (
@@ -164,6 +277,14 @@ export default function DashboardPage() {
           service={selectedService}
           open={!!selectedService}
           onClose={() => setSelectedService(null)}
+        />
+      )}
+
+      {/* Click outside to close status filter */}
+      {showStatusFilter && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowStatusFilter(false)}
         />
       )}
     </div>
