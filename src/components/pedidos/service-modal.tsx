@@ -148,7 +148,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               <TabsTrigger value="acoes" icon="⚡">Ações</TabsTrigger>
             </TabsList>
 
-            <DialogBody className="min-h-[400px] max-h-[500px]">
+            <DialogBody className="max-h-[65vh]">
               {/* TAB: Dados */}
               <TabsContent value="dados" className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
@@ -350,10 +350,10 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               </TabsContent>
 
               {/* TAB: Ações */}
-              <TabsContent value="acoes" className="space-y-3">
-                <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
-                  <h3 className="font-semibold text-sm mb-1">📋 Instruções:</h3>
-                  <ol className="text-xs text-blue-900 space-y-0.5 ml-4 list-decimal">
+              <TabsContent value="acoes" className="space-y-2 max-w-full sm:max-w-2xl mx-auto">
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                  <h3 className="font-semibold text-xs mb-1">📋 Instruções:</h3>
+                  <ol className="text-xs text-blue-900 space-y-0 ml-4 list-decimal leading-tight">
                     <li>Revise e aprove os documentos</li>
                     <li>Insira dados do IRN (Entidade e Referência)</li>
                     <li>Aguarde cliente pagar e confirmar</li>
@@ -363,21 +363,21 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 </div>
 
                 {/* Passo 1 */}
-                <div className="border rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                <div className="border rounded p-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-gray-300'
                     }`}>
                       {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
                     </div>
-                    <h4 className="font-semibold text-sm">Revisão de Documentos</h4>
+                    <h4 className="font-semibold text-xs">Revisão de Documentos</h4>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       onClick={() => setShowApproveModal(true)}
                       disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-8"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-7"
                     >
                       ✅ Aprovar
                     </Button>
@@ -386,7 +386,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                       disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
                       size="sm"
                       variant="secondary"
-                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs h-8"
+                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs h-7"
                     >
                       ⚠️ Quase Lá
                     </Button>
@@ -394,20 +394,20 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 </div>
 
                 {/* Passo 2 */}
-                <div className="border rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                <div className="border rounded p-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-gray-300'
                     }`}>
                       {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '2'}
                     </div>
-                    <h4 className="font-semibold text-sm">Inserir Dados IRN</h4>
+                    <h4 className="font-semibold text-xs">Inserir Dados IRN</h4>
                   </div>
                   <Button
                     onClick={() => setShowIRNModal(true)}
                     disabled={service.status !== ServiceStatus.STEP_7_APPROVED}
                     size="sm"
-                    className="w-full text-xs h-8"
+                    className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
                   >
                     📝 Dados IRN
                   </Button>
@@ -417,17 +417,17 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 </div>
 
                 {/* Passo 3 */}
-                <div className="border rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                <div className="border rounded p-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-gray-300'
                     }`}>
                       {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '3'}
                     </div>
-                    <h4 className="font-semibold text-sm">Cliente Pagar (€250)</h4>
+                    <h4 className="font-semibold text-xs">Cliente Pagar (€250)</h4>
                   </div>
                   {service.status === ServiceStatus.STEP_8 && (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <p className="text-xs text-yellow-700">⏳ Aguardando pagamento...</p>
                       <Button
                         onClick={() => {
@@ -436,7 +436,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                         }}
                         size="sm"
                         variant="outline"
-                        className="w-full text-xs h-8"
+                        className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
                       >
                         🎭 Simular Pagamento
                       </Button>
@@ -448,40 +448,40 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 </div>
 
                 {/* Passo 4 */}
-                <div className="border rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                <div className="border rounded p-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-gray-300'
                     }`}>
                       {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? '✓' : '4'}
                     </div>
-                    <h4 className="font-semibold text-sm">Confirmar Governo</h4>
+                    <h4 className="font-semibold text-xs">Confirmar Governo</h4>
                   </div>
                   <Button
                     onClick={handleConfirmGovernment}
                     disabled={service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED}
                     size="sm"
-                    className="w-full bg-green-600 hover:bg-green-700 text-xs h-8"
+                    className="w-full sm:max-w-[250px] sm:mx-auto bg-green-600 hover:bg-green-700 text-xs h-7"
                   >
                     ✅ Governo Confirmou
                   </Button>
                 </div>
 
                 {/* Passo 5 */}
-                <div className="border rounded p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                <div className="border rounded p-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                       service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-gray-300'
                     }`}>
                       {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
                     </div>
-                    <h4 className="font-semibold text-sm">Inserir Processo e Senha</h4>
+                    <h4 className="font-semibold text-xs">Inserir Processo e Senha</h4>
                   </div>
                   <Button
                     onClick={() => setShowProcessModal(true)}
                     disabled={service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT}
                     size="sm"
-                    className="w-full text-xs h-8"
+                    className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
                   >
                     🔐 Processo e Senha
                   </Button>

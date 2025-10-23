@@ -21,7 +21,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       />
 
       {/* Content */}
-      <div className="relative z-50 w-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden">
+      <div className="relative z-50 w-[95vw] sm:w-auto sm:max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden">
         {children}
       </div>
     </div>
@@ -57,7 +57,7 @@ interface DialogHeaderProps {
 
 export function DialogHeader({ children, className = "" }: DialogHeaderProps) {
   return (
-    <div className={`flex flex-col space-y-1.5 px-6 py-4 border-b ${className}`}>
+    <div className={`flex flex-col space-y-1.5 px-3 sm:px-6 py-3 sm:py-4 border-b ${className}`}>
       {children}
     </div>
   );
@@ -83,7 +83,7 @@ interface DialogBodyProps {
 
 export function DialogBody({ children, className = "" }: DialogBodyProps) {
   return (
-    <div className={`flex-1 overflow-y-auto px-6 py-4 ${className}`}>
+    <div className={`flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 ${className}`}>
       {children}
     </div>
   );

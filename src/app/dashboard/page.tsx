@@ -22,15 +22,15 @@ export default function DashboardPage() {
   const [dateTo, setDateTo] = useState("");
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
 
-  // Check auth
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("isAuthenticated");
-      if (!isAuth) {
-        router.push("/login");
-      }
-    }
-  }, [router]);
+  // Auth check disabled during prototyping
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const isAuth = localStorage.getItem("isAuthenticated");
+  //     if (!isAuth) {
+  //       router.push("/login");
+  //     }
+  //   }
+  // }, [router]);
 
   // Get unique statuses
   const uniqueStatuses = useMemo(() => {
@@ -73,23 +73,14 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
-        <div className="px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🇵🇹</span>
-              <h1 className="text-xl font-bold text-blue-600">Lusio Backoffice</h1>
+        <div className="px-3 sm:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-xl sm:text-2xl">🇵🇹</span>
+              <h1 className="text-base sm:text-xl font-bold text-blue-600">Lusio Backoffice</h1>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4">
               <span className="text-sm text-gray-600">Euclides</span>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("isAuthenticated");
-                  router.push("/login");
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                Sair
-              </button>
             </div>
           </div>
 
@@ -108,27 +99,27 @@ export default function DashboardPage() {
           </div>
 
           {/* Horizontal Filters */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {/* View Mode Toggle */}
             <button
               onClick={() => setViewMode("all")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "all"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              📁 Todos Processos
+              📁 <span className="hidden sm:inline">Todos Processos</span><span className="sm:hidden">Todos</span>
             </button>
             <button
               onClick={() => setViewMode("by-user")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "by-user"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              👤 Por Usuário
+              👤 <span className="hidden sm:inline">Por Usuário</span><span className="sm:hidden">Usuário</span>
             </button>
 
             {/* Status Filter */}
@@ -257,9 +248,9 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <div className="p-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Processos ({filteredServices.length})</h2>
+      <div className="p-3 sm:p-8">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Processos ({filteredServices.length})</h2>
         </div>
 
         {/* Table */}
