@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useServices } from "@/contexts/ServicesContext";
 import { ServiceStatus, ServiceWithRelations } from "@/lib/types";
 import { StatusBadge } from "@/components/pedidos/status-badge";
+import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const { services } = useServices();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
 
   // Check auth
   useEffect(() => {
@@ -112,7 +113,11 @@ export default function DashboardPage() {
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredServices.map((service) => (
-                <tr key={service.id} className="hover:bg-gray-50">
+                <tr
+                  key={service.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedService(service as ServiceWithRelations)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
                   </td>
@@ -129,12 +134,15 @@ export default function DashboardPage() {
                     <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <Link
-                      href={`/pedidos/${service.id}`}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedService(service as ServiceWithRelations);
+                      }}
                       className="text-primary hover:text-primary/80 font-medium"
                     >
                       Ver Detalhes →
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -149,6 +157,15 @@ export default function DashboardPage() {
           </table>
         </div>
       </Card>
+
+      {/* Service Modal */}
+      {selectedService && (
+        <ServiceModal
+          service={selectedService}
+          open={!!selectedService}
+          onClose={() => setSelectedService(null)}
+        />
+      )}
     </div>
   );
 }
