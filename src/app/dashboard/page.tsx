@@ -17,6 +17,9 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"all" | "by-user">("all");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
 
   // Check auth
@@ -57,9 +60,14 @@ export default function DashboardPage() {
       const matchesStatus =
         selectedStatuses.length === 0 || selectedStatuses.includes(service.status || "");
 
-      return matchesSearch && matchesStatus;
+      // Date filter
+      const serviceDate = new Date(service.createdAt);
+      const matchesDateFrom = !dateFrom || serviceDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || serviceDate <= new Date(dateTo + "T23:59:59");
+
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
-  }, [services, search, selectedStatuses]);
+  }, [services, search, selectedStatuses, dateFrom, dateTo]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -177,10 +185,73 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Dates Filter (placeholder) */}
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
-              📅 Datas
-            </button>
+            {/* Dates Filter */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDateFilter(!showDateFilter)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  dateFrom || dateTo
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                📅 Datas
+                {(dateFrom || dateTo) && (
+                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
+                    ✓
+                  </span>
+                )}
+              </button>
+
+              {/* Date Dropdown */}
+              {showDateFilter && (
+                <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-700">Filtrar por Data de Criação</span>
+                    {(dateFrom || dateTo) && (
+                      <button
+                        onClick={() => {
+                          setDateFrom("");
+                          setDateTo("");
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Data Inicial
+                      </label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Data Final
+                      </label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    {dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo) && (
+                      <p className="text-xs text-red-600">
+                        A data inicial deve ser anterior à data final
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -271,11 +342,17 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Click outside to close status filter */}
+      {/* Click outside to close filters */}
       {showStatusFilter && (
         <div
           className="fixed inset-0 z-30"
           onClick={() => setShowStatusFilter(false)}
+        />
+      )}
+      {showDateFilter && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setShowDateFilter(false)}
         />
       )}
 
