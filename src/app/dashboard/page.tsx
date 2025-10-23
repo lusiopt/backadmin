@@ -271,20 +271,20 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* Click outside to close status filter */}
+      {showStatusFilter && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setShowStatusFilter(false)}
+        />
+      )}
+
       {/* Service Modal */}
       {selectedService && (
         <ServiceModal
           service={selectedService}
           open={!!selectedService}
           onClose={() => setSelectedService(null)}
-        />
-      )}
-
-      {/* Click outside to close status filter */}
-      {showStatusFilter && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowStatusFilter(false)}
         />
       )}
     </div>
