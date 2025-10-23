@@ -98,16 +98,41 @@ export default function DashboardPage() {
     });
   }, [services, search, selectedStatuses, dateFrom, dateTo, selectedUserId]);
 
-  // Filter users by search
+  // Filter users by search, status and date
   const filteredUsers = useMemo(() => {
-    return userGroups.filter((group) => {
-      const matchesSearch =
-        search === "" ||
-        group.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
-        group.user.email.toLowerCase().includes(search.toLowerCase());
-      return matchesSearch;
-    });
-  }, [userGroups, search]);
+    return userGroups
+      .map((group) => {
+        // Filter the user's services by status and date
+        const filteredServices = group.services.filter((service) => {
+          const matchesStatus =
+            selectedStatuses.length === 0 || selectedStatuses.includes(service.status || "");
+
+          const serviceDate = new Date(service.createdAt);
+          const matchesDateFrom = !dateFrom || serviceDate >= new Date(dateFrom);
+          const matchesDateTo = !dateTo || serviceDate <= new Date(dateTo + "T23:59:59");
+
+          return matchesStatus && matchesDateFrom && matchesDateTo;
+        });
+
+        return {
+          ...group,
+          services: filteredServices,
+          filteredCount: filteredServices.length,
+        };
+      })
+      .filter((group) => {
+        // Only show users that have at least one service matching the filters
+        const hasMatchingServices = group.filteredCount > 0;
+
+        // Also apply search filter on user name/email
+        const matchesSearch =
+          search === "" ||
+          group.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
+          group.user.email.toLowerCase().includes(search.toLowerCase());
+
+        return hasMatchingServices && matchesSearch;
+      });
+  }, [userGroups, search, selectedStatuses, dateFrom, dateTo]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -442,7 +467,7 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                          {group.services.length} {group.services.length === 1 ? "pedido" : "pedidos"}
+                          {group.filteredCount} {group.filteredCount === 1 ? "pedido" : "pedidos"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
