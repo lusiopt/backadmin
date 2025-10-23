@@ -261,18 +261,72 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
 
               {/* TAB: Documentos */}
               <TabsContent value="documentos" className="space-y-3">
-                <h3 className="font-semibold">Documentos ({service.documents?.length || 0})</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Documentos ({service.documents?.length || 0})</h3>
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          const newDocs = files.map((file, idx) => ({
+                            id: `doc_${Date.now()}_${idx}`,
+                            name: file.name,
+                            url: URL.createObjectURL(file),
+                            uploadedAt: new Date().toISOString(),
+                            serviceId: service.id,
+                          }));
+                          updateService(service.id, {
+                            documents: [...(service.documents || []), ...newDocs]
+                          });
+                          alert(`✅ ${files.length} arquivo(s) adicionado(s)!`);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <Button size="sm" className="text-xs">
+                      📎 Adicionar Documentos
+                    </Button>
+                  </label>
+                </div>
                 {service.documents && service.documents.length > 0 ? (
                   <div className="space-y-2">
                     {service.documents.map((doc) => (
                       <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100">
-                        <span className="text-sm">{doc.name}</span>
-                        <button className="text-xs text-primary hover:underline">Download</button>
+                        <div className="flex-1">
+                          <span className="text-sm font-medium">{doc.name}</span>
+                          {doc.uploadedAt && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Enviado em {formatDate(doc.uploadedAt)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button className="text-xs text-primary hover:underline">Ver</button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Remover ${doc.name}?`)) {
+                                updateService(service.id, {
+                                  documents: service.documents?.filter(d => d.id !== doc.id)
+                                });
+                              }
+                            }}
+                            className="text-xs text-red-600 hover:underline"
+                          >
+                            Remover
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 py-8 text-center">Nenhum documento anexado</p>
+                  <p className="text-sm text-gray-500 py-8 text-center">
+                    Nenhum documento anexado.<br/>
+                    Clique em "Adicionar Documentos" para enviar arquivos.
+                  </p>
                 )}
               </TabsContent>
 
