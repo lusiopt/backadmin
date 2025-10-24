@@ -9,29 +9,41 @@ import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { StatsCards } from "@/components/stats/StatsCards";
+import { ProcessChart } from "@/components/charts/ProcessChart";
+import { RecentActivity } from "@/components/tables/RecentActivity";
+import {
+  Calendar,
+  Download,
+  Filter,
+  RefreshCw,
+  Settings,
+  Bell,
+  Search,
+  ChevronRight,
+  Users,
+  FileText
+} from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { services } = useServices();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"all" | "by-user">("all");
+  const [viewMode, setViewMode] = useState<"dashboard" | "list">("dashboard");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Auth check disabled during prototyping
-  // useEffect(() => {
-  //   if (typeof window !== "undefined") {
-  //     const isAuth = localStorage.getItem("isAuthenticated");
-  //     if (!isAuth) {
-  //       router.push("/login");
-  //     }
-  //   }
-  // }, [router]);
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  };
 
   // Get unique statuses
   const uniqueStatuses = useMemo(() => {
@@ -39,483 +51,525 @@ export default function DashboardPage() {
     return Array.from(statuses);
   }, [services]);
 
-  // Group services by user (for "by-user" view)
-  const userGroups = useMemo(() => {
-    const groups = new Map<string, {
-      user: { id: string; fullName: string; email: string };
-      services: ServiceWithRelations[];
-    }>();
-
-    services.forEach((service) => {
-      const userId = service.user.id;
-      if (!groups.has(userId)) {
-        groups.set(userId, {
-          user: {
-            id: service.user.id,
-            fullName: service.user.fullName,
-            email: service.user.email,
-          },
-          services: [],
-        });
-      }
-      groups.get(userId)!.services.push(service as ServiceWithRelations);
-    });
-
-    return Array.from(groups.values());
-  }, [services]);
-
-  // Toggle status selection
-  const toggleStatus = (status: string) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
-    );
-  };
-
-  // Filter services
+  // Filtered services
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
-      const matchesSearch =
-        search === "" ||
-        service.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
-        service.user.email.toLowerCase().includes(search.toLowerCase()) ||
-        service.processNumber?.toLowerCase().includes(search.toLowerCase()) ||
-        service.id.toLowerCase().includes(search.toLowerCase());
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesSearch =
+          service.user.fullName.toLowerCase().includes(searchLower) ||
+          service.user.email.toLowerCase().includes(searchLower) ||
+          service.id.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
 
-      const matchesStatus =
-        selectedStatuses.length === 0 || selectedStatuses.includes(service.status || "");
+      // Status filter
+      if (selectedStatuses.length > 0) {
+        if (!service.status || !selectedStatuses.includes(service.status)) {
+          return false;
+        }
+      }
 
       // Date filter
-      const serviceDate = new Date(service.createdAt);
-      const matchesDateFrom = !dateFrom || serviceDate >= new Date(dateFrom);
-      const matchesDateTo = !dateTo || serviceDate <= new Date(dateTo + "T23:59:59");
+      if (dateFrom || dateTo) {
+        const serviceDate = new Date(service.createdAt);
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          if (serviceDate < fromDate) return false;
+        }
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (serviceDate > toDate) return false;
+        }
+      }
 
-      // User filter (when a user is selected in by-user mode)
-      const matchesUser = !selectedUserId || service.user.id === selectedUserId;
-
-      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo && matchesUser;
+      return true;
     });
-  }, [services, search, selectedStatuses, dateFrom, dateTo, selectedUserId]);
+  }, [services, search, selectedStatuses, dateFrom, dateTo]);
 
-  // Filter users by search, status and date
-  const filteredUsers = useMemo(() => {
-    return userGroups
-      .map((group) => {
-        // Filter the user's services by status and date
-        const filteredServices = group.services.filter((service) => {
-          const matchesStatus =
-            selectedStatuses.length === 0 || selectedStatuses.includes(service.status || "");
+  // Quick actions
+  const quickActions = [
+    {
+      label: "Processos Pendentes",
+      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      icon: <Bell className="w-5 h-5" />,
+      color: "bg-yellow-100 text-yellow-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Esperando"]);
+        setViewMode("list");
+      }
+    },
+    {
+      label: "Aprovar Processos",
+      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      icon: <ChevronRight className="w-5 h-5" />,
+      color: "bg-green-100 text-green-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Esperando"]);
+        setViewMode("list");
+      }
+    },
+    {
+      label: "Documentos Faltantes",
+      count: services.filter(s => s.status === "Passo 7 Recusado").length,
+      icon: <Calendar className="w-5 h-5" />,
+      color: "bg-red-100 text-red-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Recusado"]);
+        setViewMode("list");
+      }
+    },
+  ];
 
-          const serviceDate = new Date(service.createdAt);
-          const matchesDateFrom = !dateFrom || serviceDate >= new Date(dateFrom);
-          const matchesDateTo = !dateTo || serviceDate <= new Date(dateTo + "T23:59:59");
-
-          return matchesStatus && matchesDateFrom && matchesDateTo;
-        });
-
-        return {
-          ...group,
-          services: filteredServices,
-          filteredCount: filteredServices.length,
-        };
-      })
-      .filter((group) => {
-        // Only show users that have at least one service matching the filters
-        const hasMatchingServices = group.filteredCount > 0;
-
-        // Also apply search filter on user name/email
-        const matchesSearch =
-          search === "" ||
-          group.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
-          group.user.email.toLowerCase().includes(search.toLowerCase());
-
-        return hasMatchingServices && matchesSearch;
-      });
-  }, [userGroups, search, selectedStatuses, dateFrom, dateTo]);
+  const handleServiceClick = (service: ServiceWithRelations) => {
+    router.push(`/pedidos/${service.id}`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
-        <div className="px-3 sm:px-8 py-3 sm:py-4">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="text-xl sm:text-2xl">🇵🇹</span>
-              <h1 className="text-base sm:text-xl font-bold text-blue-600">Lusio Backoffice</h1>
+        <div className="px-4 sm:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Sistema de Gestão - Lusio Cidadania
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {viewMode === "dashboard" ? "Visão geral do sistema" : "Lista de processos"}
+              </p>
             </div>
-            <div className="hidden sm:flex items-center gap-4">
-              <span className="text-sm text-gray-600">Euclides</span>
-            </div>
-          </div>
 
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-              <Input
-                type="text"
-                placeholder="Buscar por nome, email ou ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-12 text-base"
-              />
-            </div>
-          </div>
-
-          {/* Horizontal Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View Mode Toggle */}
-            <button
-              onClick={() => {
-                setViewMode("all");
-                setSelectedUserId(null);
-              }}
-              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                viewMode === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              📁 <span className="hidden sm:inline">Todos Processos</span><span className="sm:hidden">Todos</span>
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("by-user");
-                setSelectedUserId(null);
-              }}
-              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                viewMode === "by-user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              👤 <span className="hidden sm:inline">Por Usuário</span><span className="sm:hidden">Usuário</span>
-            </button>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <button
-                onClick={() => setShowStatusFilter(!showStatusFilter)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedStatuses.length > 0
-                    ? "bg-blue-600 text-white"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                📊 Status
-                {selectedStatuses.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
-                    {selectedStatuses.length}
+            <div className="flex items-center gap-3">
+              {/* View Toggle */}
+              <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setViewMode("dashboard")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "dashboard"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    📊 Dashboard
                   </span>
-                )}
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "list"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    📋 Lista
+                  </span>
+                </button>
+              </div>
+
+              {/* Actions */}
+              <button
+                onClick={handleRefresh}
+                className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className="w-5 h-5 text-gray-600" />
               </button>
 
-              {/* Status Dropdown */}
-              {showStatusFilter && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <div className="px-3 py-2 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-700">Filtrar por Status</span>
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <Download className="w-5 h-5 text-gray-600" />
+              </button>
+
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <Settings className="w-5 h-5 text-gray-600" />
+              </button>
+
+              {/* User */}
+              <div className="flex items-center gap-3 ml-3 pl-3 border-l border-gray-200">
+                <div className="relative">
+                  <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                    <Bell className="w-5 h-5 text-gray-600" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    E
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 hidden lg:block">
+                    Euclides
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="mt-4">
+            <div className="flex flex-col lg:flex-row gap-3">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Buscar por nome, email ou ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 h-10"
+                />
+              </div>
+
+              {/* Filter Buttons */}
+              <div className="flex gap-2">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusFilter(!showStatusFilter)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    📊 Status
+                    {selectedStatuses.length > 0 && (
+                      <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                        {selectedStatuses.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {showStatusFilter && (
+                    <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50">
+                      <div className="space-y-2">
+                        {uniqueStatuses.map((status) => (
+                          <label key={status} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedStatuses.includes(status)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStatuses([...selectedStatuses, status]);
+                                } else {
+                                  setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <StatusBadge status={status as ServiceStatus} />
+                          </label>
+                        ))}
+                      </div>
                       {selectedStatuses.length > 0 && (
                         <button
                           onClick={() => setSelectedStatuses([])}
-                          className="text-xs text-blue-600 hover:text-blue-700"
+                          className="mt-3 text-sm text-blue-600 hover:text-blue-700"
                         >
-                          Limpar
+                          Limpar filtros
                         </button>
                       )}
                     </div>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {uniqueStatuses.map((status) => (
-                      <label
-                        key={status}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedStatuses.includes(status || "")}
-                          onChange={() => toggleStatus(status || "")}
-                          className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                        />
-                        <StatusBadge status={status} />
-                      </label>
-                    ))}
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Dates Filter */}
-            <div className="relative">
-              <button
-                onClick={() => setShowDateFilter(!showDateFilter)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  dateFrom || dateTo
-                    ? "bg-blue-600 text-white"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                📅 Datas
-                {(dateFrom || dateTo) && (
-                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
-                    ✓
-                  </span>
-                )}
-              </button>
-
-              {/* Date Dropdown */}
-              {showDateFilter && (
-                <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Filtrar por Data de Criação</span>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDateFilter(!showDateFilter)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    📅 Datas
                     {(dateFrom || dateTo) && (
-                      <button
-                        onClick={() => {
-                          setDateFrom("");
-                          setDateTo("");
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-700"
-                      >
-                        Limpar
-                      </button>
+                      <span className="ml-1 w-2 h-2 bg-blue-500 rounded-full"></span>
                     )}
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Data Inicial
-                      </label>
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
+                  </button>
+
+                  {showDateFilter && (
+                    <div className="absolute top-full mt-2 right-0 w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            De:
+                          </label>
+                          <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Até:
+                          </label>
+                          <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        {(dateFrom || dateTo) && (
+                          <button
+                            onClick={() => {
+                              setDateFrom("");
+                              setDateTo("");
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                          >
+                            Limpar datas
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Data Final
-                      </label>
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    {dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo) && (
-                      <p className="text-xs text-red-600">
-                        A data inicial deve ser anterior à data final
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="p-3 sm:p-8">
-        {/* Header com breadcrumb se usuário selecionado */}
-        {selectedUserId && viewMode === "by-user" && (
-          <div className="mb-4">
-            <button
-              onClick={() => setSelectedUserId(null)}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
-            >
-              ← Voltar para todos os usuários
-            </button>
-          </div>
-        )}
+      <div className="p-4 sm:p-8">
+        {viewMode === "dashboard" ? (
+          <>
+            {/* Quick Actions */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                Ações Rápidas
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {quickActions.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={action.action}
+                    className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${action.color}`}>
+                        {action.icon}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-900">
+                          {action.label}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {action.count}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <div className="mb-4 sm:mb-6">
-          {viewMode === "all" ? (
-            <h2 className="text-xl sm:text-2xl font-bold">Processos ({filteredServices.length})</h2>
-          ) : selectedUserId ? (
-            <h2 className="text-xl sm:text-2xl font-bold">
-              Pedidos do Usuário ({filteredServices.length})
-            </h2>
-          ) : (
-            <h2 className="text-xl sm:text-2xl font-bold">Usuários ({filteredUsers.length})</h2>
-          )}
-        </div>
+            {/* Stats Cards */}
+            <StatsCards />
 
-        {/* Table */}
-        <Card>
-          <div className="overflow-x-auto">
-            {viewMode === "all" || selectedUserId ? (
-              // TABELA DE PROCESSOS
-              <table className="w-full">
-                <thead className="border-b bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Nome
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Criado Em
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredServices.map((service) => (
-                    <tr
-                      key={service.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => setSelectedService(service as ServiceWithRelations)}
+            {/* Charts and Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ProcessChart />
+              <RecentActivity />
+            </div>
+
+            {/* Additional Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              {/* Pending Actions */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Ações Pendentes
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { label: "Documentos para revisar", count: 8, urgent: true },
+                    { label: "Processos aguardando IRN", count: 3, urgent: false },
+                    { label: "Pagamentos pendentes", count: 5, urgent: false },
+                    { label: "Emails não respondidos", count: 2, urgent: true },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 font-mono">{service.id.slice(0, 8)}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{service.user.fullName}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <a
-                          href={`mailto:${service.user.email}`}
-                          className="text-sm text-blue-600 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {service.user.email}
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge status={service.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">{formatDate(service.createdAt)}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedService(service as ServiceWithRelations);
-                          }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                        >
-                          Ver Detalhes
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredServices.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                        Nenhum processo encontrado
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            ) : (
-              // TABELA DE USUÁRIOS
-              <table className="w-full">
-                <thead className="border-b bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Usuário
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pedidos
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredUsers.map((group) => (
-                    <tr
-                      key={group.user.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => setSelectedUserId(group.user.id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {group.user.fullName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="text-sm font-medium text-gray-900">{group.user.fullName}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <a
-                          href={`mailto:${group.user.email}`}
-                          className="text-sm text-blue-600 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {group.user.email}
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                          {group.filteredCount} {group.filteredCount === 1 ? "pedido" : "pedidos"}
+                      <span className="text-sm font-medium text-gray-700">
+                        {item.label}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          item.urgent
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {item.count}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedUserId(group.user.id);
-                          }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                        >
-                          Ver Pedidos
-                        </button>
-                      </td>
-                    </tr>
+                        {item.urgent && (
+                          <span className="text-red-500 text-xs">Urgente</span>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                  {filteredUsers.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                        Nenhum usuário encontrado
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </Card>
-      </div>
+                </div>
+              </Card>
 
-      {/* Click outside to close filters */}
-      {showStatusFilter && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setShowStatusFilter(false)}
-        />
-      )}
-      {showDateFilter && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setShowDateFilter(false)}
-        />
-      )}
+              {/* System Health */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Status do Sistema
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { service: "API Backend", status: "online", latency: "45ms" },
+                    { service: "Base de Dados", status: "online", latency: "12ms" },
+                    { service: "Stripe", status: "online", latency: "120ms" },
+                    { service: "Email Service", status: "online", latency: "88ms" },
+                    { service: "File Storage", status: "online", latency: "67ms" },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          item.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                        }`} />
+                        <span className="text-sm font-medium text-gray-700">
+                          {item.service}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">
+                          {item.latency}
+                        </span>
+                        <span className={`text-xs font-medium ${
+                          item.status === 'online' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">
+                      Última verificação: há 2 minutos
+                    </span>
+                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                      Ver detalhes
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* List View */}
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                Processos ({filteredServices.length})
+              </h2>
+            </div>
+
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nome
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Criado Em
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {filteredServices.map((service) => (
+                      <tr
+                        key={service.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleServiceClick(service)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500 font-mono">
+                            {service.id}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {service.user.fullName}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a
+                            href={`mailto:${service.user.email}`}
+                            className="text-sm text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {service.user.email}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <StatusBadge status={service.status} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600">
+                            {formatDate(service.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleServiceClick(service);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                          >
+                            Ver Detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {filteredServices.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">
+                      Nenhum processo encontrado
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Tente ajustar os filtros ou a busca
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
 
       {/* Service Modal */}
       {selectedService && (
         <ServiceModal
           service={selectedService}
-          open={!!selectedService}
           onClose={() => setSelectedService(null)}
         />
       )}

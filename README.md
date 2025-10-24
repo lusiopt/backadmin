@@ -76,8 +76,7 @@ Progresso: ████████░░ 85%
 src/
 ├── app/                    # Páginas (App Router)
 │   ├── dashboard/
-│   │   ├── page.tsx       # Lista de processos
-│   │   └── overview/      # Dashboard com gráficos
+│   │   └── page.tsx       # Dashboard unificado (toggle entre visão geral e lista)
 │   └── pedidos/
 │       └── [id]/
 │           ├── page.tsx   # Detalhes do pedido
@@ -169,8 +168,7 @@ login({ email, password });
 | Rota | Descrição | Status |
 |------|-----------|--------|
 | `/` | Redireciona para dashboard | ✅ |
-| `/dashboard` | Lista de processos | ✅ |
-| `/dashboard/overview` | Dashboard com gráficos | ✅ |
+| `/dashboard` | Dashboard unificado (toggle visão geral/lista) | ✅ |
 | `/pedidos/[id]` | Detalhes do pedido | ✅ |
 | `/login` | Tela de login | 🔄 |
 
