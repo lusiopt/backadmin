@@ -505,7 +505,7 @@ export default function DashboardPage() {
                       <tr
                         key={service.id}
                         className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleServiceClick(service)}
+                        onClick={() => handleServiceClick(service as ServiceWithRelations)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500 font-mono">
@@ -538,7 +538,7 @@ export default function DashboardPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleServiceClick(service);
+                              handleServiceClick(service as ServiceWithRelations);
                             }}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                           >
