@@ -5,10 +5,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Desabilitar telemetria em produção
-  telemetry: {
-    disabled: true,
-  },
 }
 
 module.exports = nextConfig
