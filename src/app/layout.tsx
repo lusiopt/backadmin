@@ -1,6 +1,7 @@
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { ServicesProvider } from "@/contexts/ServicesContext";
+import QueryProvider from "@/providers/QueryProvider";
 
 const font = DM_Sans({ subsets: ["latin"] });
 
@@ -17,9 +18,11 @@ export default function RootLayout({
   return (
     <html lang="pt-PT">
       <body className={`${font.className} antialiased`}>
-        <ServicesProvider>
-          {children}
-        </ServicesProvider>
+        <QueryProvider>
+          <ServicesProvider>
+            {children}
+          </ServicesProvider>
+        </QueryProvider>
       </body>
     </html>
   );
