@@ -413,11 +413,17 @@ export default function DashboardPage() {
             </div>
 
             {/* Stats Cards */}
-            <StatsCards />
+            <StatsCards
+              onFilterChange={setSelectedStatuses}
+              onViewChange={setViewMode}
+            />
 
             {/* Charts and Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ProcessChart />
+              <ProcessChart
+                onFilterChange={setSelectedStatuses}
+                onViewChange={setViewMode}
+              />
               <RecentActivity />
             </div>
 

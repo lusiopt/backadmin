@@ -20,9 +20,15 @@ interface StatCard {
     isPositive: boolean;
   };
   color: string;
+  onClick?: () => void;
 }
 
-export function StatsCards() {
+interface StatsCardsProps {
+  onFilterChange?: (statuses: string[]) => void;
+  onViewChange?: (view: "dashboard" | "list" | "by-user") => void;
+}
+
+export function StatsCards({ onFilterChange, onViewChange }: StatsCardsProps) {
   // Calcular estatísticas
   const totalServices = mockServices.length;
 
@@ -58,6 +64,10 @@ export function StatsCards() {
       icon: <Users className="w-5 h-5" />,
       trend: { value: 12, isPositive: true },
       color: "text-blue-600 bg-blue-100",
+      onClick: () => {
+        onFilterChange?.([]);
+        onViewChange?.("list");
+      },
     },
     {
       title: "Aguardando Análise",
@@ -66,6 +76,10 @@ export function StatsCards() {
       icon: <Clock className="w-5 h-5" />,
       trend: { value: 3, isPositive: false },
       color: "text-yellow-600 bg-yellow-100",
+      onClick: () => {
+        onFilterChange?.([ServiceStatus.STEP_7_WAITING]);
+        onViewChange?.("list");
+      },
     },
     {
       title: "Aprovados",
@@ -74,6 +88,15 @@ export function StatsCards() {
       icon: <FileCheck className="w-5 h-5" />,
       trend: { value: approvalRate, isPositive: approvalRate > 70 },
       color: "text-green-600 bg-green-100",
+      onClick: () => {
+        onFilterChange?.([
+          ServiceStatus.STEP_7_APPROVED,
+          ServiceStatus.STEP_8,
+          ServiceStatus.STEP_8_CLIENT_CONFIRMED,
+          ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT,
+        ]);
+        onViewChange?.("list");
+      },
     },
     {
       title: "Recusados",
@@ -81,13 +104,21 @@ export function StatsCards() {
       description: "Documentação pendente",
       icon: <AlertCircle className="w-5 h-5" />,
       color: "text-red-600 bg-red-100",
+      onClick: () => {
+        onFilterChange?.([ServiceStatus.STEP_7_RECUSED]);
+        onViewChange?.("list");
+      },
     },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
+        <Card
+          key={index}
+          className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={stat.onClick}
+        >
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600">

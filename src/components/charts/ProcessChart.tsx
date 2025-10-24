@@ -5,7 +5,12 @@ import { mockServices } from "@/lib/mockData";
 import { ServiceStatus } from "@/lib/types";
 import { useMemo } from "react";
 
-export function ProcessChart() {
+interface ProcessChartProps {
+  onFilterChange?: (statuses: string[]) => void;
+  onViewChange?: (view: "dashboard" | "list" | "by-user") => void;
+}
+
+export function ProcessChart({ onFilterChange, onViewChange }: ProcessChartProps) {
   const statusCounts = useMemo(() => {
     const counts = new Map<string, number>();
 
@@ -64,6 +69,44 @@ export function ProcessChart() {
     "Concluídos": "bg-gray-500",
   };
 
+  const statusGroups = {
+    "Documentação": [
+      ServiceStatus.STEP_1,
+      ServiceStatus.STEP_2,
+      ServiceStatus.STEP_3,
+      ServiceStatus.STEP_4,
+      ServiceStatus.STEP_5,
+      ServiceStatus.STEP_6,
+    ],
+    "Análise Advogado": [
+      ServiceStatus.STEP_7,
+      ServiceStatus.STEP_7_WAITING,
+      ServiceStatus.STEP_7_ALMOST,
+    ],
+    "Aprovados": [
+      ServiceStatus.STEP_7_APPROVED,
+      ServiceStatus.STEP_8,
+      ServiceStatus.STEP_8_CLIENT_CONFIRMED,
+      ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT,
+    ],
+    "Recusados": [ServiceStatus.STEP_7_RECUSED],
+    "Governo": [
+      ServiceStatus.SUBMITTED,
+      ServiceStatus.UNDER_ANALYSIS,
+      ServiceStatus.WAITING_RESPONSE,
+      ServiceStatus.FOR_DECISION,
+    ],
+    "Concluídos": [ServiceStatus.COMPLETED],
+  };
+
+  const handleGroupClick = (groupName: string) => {
+    const statuses = statusGroups[groupName as keyof typeof statusGroups];
+    if (statuses && onFilterChange && onViewChange) {
+      onFilterChange(statuses);
+      onViewChange("list");
+    }
+  };
+
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -83,6 +126,7 @@ export function ProcessChart() {
               className={`${colors[status as keyof typeof colors]} relative group cursor-pointer transition-all hover:opacity-80`}
               style={{ width: `${percentage}%` }}
               title={`${status}: ${count} (${percentage.toFixed(1)}%)`}
+              onClick={() => handleGroupClick(status)}
             >
               {percentage > 5 && (
                 <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-medium">
@@ -99,7 +143,11 @@ export function ProcessChart() {
         {Array.from(statusCounts.entries()).map(([status, count]) => {
           const percentage = (count / total) * 100;
           return (
-            <div key={status} className="flex items-center gap-2">
+            <div
+              key={status}
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              onClick={() => handleGroupClick(status)}
+            >
               <div
                 className={`w-3 h-3 rounded ${colors[status as keyof typeof colors]}`}
               />
