@@ -249,9 +249,9 @@ export default function DashboardPage() {
                           <label key={status} className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={selectedStatuses.includes(status)}
+                              checked={status ? selectedStatuses.includes(status) : false}
                               onChange={(e) => {
-                                if (e.target.checked) {
+                                if (e.target.checked && status) {
                                   setSelectedStatuses([...selectedStatuses, status]);
                                 } else {
                                   setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
