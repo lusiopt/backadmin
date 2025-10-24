@@ -17,7 +17,7 @@ export default function NotFoundPage() {
           A página que procura não existe ou foi removida.
         </p>
         <Link
-          href="/dashboard"
+          href="/"
           className="mt-8 inline-block rounded-md bg-primary px-6 py-3 text-white hover:bg-primary/90 transition-colors"
         >
           Voltar ao Dashboard

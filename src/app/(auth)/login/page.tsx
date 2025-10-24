@@ -23,7 +23,7 @@ export default function LoginPage() {
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", name);
       }
-      router.push("/dashboard");
+      router.push("/");
     }, 500);
   };
 

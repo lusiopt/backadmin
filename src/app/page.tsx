@@ -1,154 +1,579 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, FileText, Users, BarChart3, Shield } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useServices } from "@/contexts/ServicesContext";
+import { ServiceStatus, ServiceWithRelations } from "@/lib/types";
+import { StatusBadge } from "@/components/pedidos/status-badge";
+import { ServiceModal } from "@/components/pedidos/service-modal";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { formatDate } from "@/lib/utils";
+import { StatsCards } from "@/components/stats/StatsCards";
+import { ProcessChart } from "@/components/charts/ProcessChart";
+import { RecentActivity } from "@/components/tables/RecentActivity";
+import {
+  Calendar,
+  Download,
+  Filter,
+  RefreshCw,
+  Settings,
+  Bell,
+  Search,
+  ChevronRight,
+  Users,
+  FileText
+} from "lucide-react";
 
-export default function HomePage() {
+export default function DashboardPage() {
+  const router = useRouter();
+  const { services } = useServices();
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"dashboard" | "list">("dashboard");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  };
+
+  // Get unique statuses
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(services.map((s) => s.status).filter(Boolean));
+    return Array.from(statuses);
+  }, [services]);
+
+  // Filtered services
+  const filteredServices = useMemo(() => {
+    return services.filter((service) => {
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesSearch =
+          service.user.fullName.toLowerCase().includes(searchLower) ||
+          service.user.email.toLowerCase().includes(searchLower) ||
+          service.id.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Status filter
+      if (selectedStatuses.length > 0) {
+        if (!service.status || !selectedStatuses.includes(service.status)) {
+          return false;
+        }
+      }
+
+      // Date filter
+      if (dateFrom || dateTo) {
+        const serviceDate = new Date(service.createdAt);
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          if (serviceDate < fromDate) return false;
+        }
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (serviceDate > toDate) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [services, search, selectedStatuses, dateFrom, dateTo]);
+
+  // Quick actions
+  const quickActions = [
+    {
+      label: "Processos Pendentes",
+      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      icon: <Bell className="w-5 h-5" />,
+      color: "bg-yellow-100 text-yellow-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Esperando"]);
+        setViewMode("list");
+      }
+    },
+    {
+      label: "Aprovar Processos",
+      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      icon: <ChevronRight className="w-5 h-5" />,
+      color: "bg-green-100 text-green-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Esperando"]);
+        setViewMode("list");
+      }
+    },
+    {
+      label: "Documentos Faltantes",
+      count: services.filter(s => s.status === "Passo 7 Recusado").length,
+      icon: <Calendar className="w-5 h-5" />,
+      color: "bg-red-100 text-red-700",
+      action: () => {
+        setSelectedStatuses(["Passo 7 Recusado"]);
+        setViewMode("list");
+      }
+    },
+  ];
+
+  const handleServiceClick = (service: ServiceWithRelations) => {
+    router.push(`/pedidos/${service.id}`);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-white" />
+      <header className="bg-white border-b sticky top-0 z-40">
+        <div className="px-4 sm:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Sistema de Gestão - Lusio Cidadania
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {viewMode === "dashboard" ? "Visão geral do sistema" : "Lista de processos"}
+              </p>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Lusio Backoffice
-            </span>
+
+            <div className="flex items-center gap-3">
+              {/* View Toggle */}
+              <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setViewMode("dashboard")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "dashboard"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    📊 Dashboard
+                  </span>
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "list"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    📋 Lista
+                  </span>
+                </button>
+              </div>
+
+              {/* Actions */}
+              <button
+                onClick={handleRefresh}
+                className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className="w-5 h-5 text-gray-600" />
+              </button>
+
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <Download className="w-5 h-5 text-gray-600" />
+              </button>
+
+              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <Settings className="w-5 h-5 text-gray-600" />
+              </button>
+
+              {/* User */}
+              <div className="flex items-center gap-3 ml-3 pl-3 border-l border-gray-200">
+                <div className="relative">
+                  <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                    <Bell className="w-5 h-5 text-gray-600" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    E
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 hidden lg:block">
+                    Euclides
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <Link
-            href="/dashboard"
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-          >
-            Acessar Dashboard
-          </Link>
+
+          {/* Search and Filters */}
+          <div className="mt-4">
+            <div className="flex flex-col lg:flex-row gap-3">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Buscar por nome, email ou ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 h-10"
+                />
+              </div>
+
+              {/* Filter Buttons */}
+              <div className="flex gap-2">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusFilter(!showStatusFilter)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    📊 Status
+                    {selectedStatuses.length > 0 && (
+                      <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                        {selectedStatuses.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {showStatusFilter && (
+                    <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50">
+                      <div className="space-y-2">
+                        {uniqueStatuses.map((status) => (
+                          <label key={status} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={status ? selectedStatuses.includes(status) : false}
+                              onChange={(e) => {
+                                if (e.target.checked && status) {
+                                  setSelectedStatuses([...selectedStatuses, status]);
+                                } else {
+                                  setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <StatusBadge status={status as ServiceStatus} />
+                          </label>
+                        ))}
+                      </div>
+                      {selectedStatuses.length > 0 && (
+                        <button
+                          onClick={() => setSelectedStatuses([])}
+                          className="mt-3 text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Limpar filtros
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDateFilter(!showDateFilter)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    📅 Datas
+                    {(dateFrom || dateTo) && (
+                      <span className="ml-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+                    )}
+                  </button>
+
+                  {showDateFilter && (
+                    <div className="absolute top-full mt-2 right-0 w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            De:
+                          </label>
+                          <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Até:
+                          </label>
+                          <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        {(dateFrom || dateTo) && (
+                          <button
+                            onClick={() => {
+                              setDateFrom("");
+                              setDateTo("");
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-700"
+                          >
+                            Limpar datas
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Sistema de Gestão de Processos de Cidadania
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Plataforma completa para gerenciamento de pedidos de cidadania portuguesa.
-            Acompanhe processos, gerencie documentos e otimize seu fluxo de trabalho.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/dashboard"
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 text-lg font-semibold"
-            >
-              Começar Agora
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/dashboard"
-              className="px-8 py-4 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 text-lg font-semibold"
-            >
-              Ver Pedidos
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Feature 1 */}
-          <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <FileText className="w-6 h-6 text-blue-600" />
+      {/* Main Content */}
+      <div className="p-4 sm:p-8">
+        {viewMode === "dashboard" ? (
+          <>
+            {/* Quick Actions */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                Ações Rápidas
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {quickActions.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={action.action}
+                    className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${action.color}`}>
+                        {action.icon}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-900">
+                          {action.label}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {action.count}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  </button>
+                ))}
+              </div>
             </div>
-            <h3 className="text-xl font-semibold mb-2">Gestão de Pedidos</h3>
-            <p className="text-gray-600">
-              Acompanhe todos os pedidos de cidadania em um único lugar. Filtre por status, pesquise e organize.
-            </p>
-          </div>
 
-          {/* Feature 2 */}
-          <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Gestão de Clientes</h3>
-            <p className="text-gray-600">
-              Cadastro completo de clientes, com histórico de processos e documentação organizada.
-            </p>
-          </div>
+            {/* Stats Cards */}
+            <StatsCards />
 
-          {/* Feature 3 */}
-          <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <BarChart3 className="w-6 h-6 text-green-600" />
+            {/* Charts and Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ProcessChart />
+              <RecentActivity />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Relatórios e Analytics</h3>
-            <p className="text-gray-600">
-              Dashboard com métricas em tempo real. Acompanhe performance e tome decisões baseadas em dados.
-            </p>
-          </div>
 
-          {/* Feature 4 */}
-          <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-              <Shield className="w-6 h-6 text-orange-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Segurança e Controle</h3>
-            <p className="text-gray-600">
-              Controle de acesso, auditoria de ações e proteção de dados sensíveis dos clientes.
-            </p>
-          </div>
-        </div>
-      </section>
+            {/* Additional Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              {/* Pending Actions */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Ações Pendentes
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { label: "Documentos para revisar", count: 8, urgent: true },
+                    { label: "Processos aguardando IRN", count: 3, urgent: false },
+                    { label: "Pagamentos pendentes", count: 5, urgent: false },
+                    { label: "Emails não respondidos", count: 2, urgent: true },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <span className="text-sm font-medium text-gray-700">
+                        {item.label}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          item.urgent
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {item.count}
+                        </span>
+                        {item.urgent && (
+                          <span className="text-red-500 text-xs">Urgente</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
 
-      {/* Stats Section */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-blue-100">Processos Gerenciados</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-blue-100">Taxa de Sucesso</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">24/7</div>
-              <div className="text-blue-100">Suporte Disponível</div>
-            </div>
-          </div>
-        </div>
-      </section>
+              {/* System Health */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Status do Sistema
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { service: "API Backend", status: "online", latency: "45ms" },
+                    { service: "Base de Dados", status: "online", latency: "12ms" },
+                    { service: "Stripe", status: "online", latency: "120ms" },
+                    { service: "Email Service", status: "online", latency: "88ms" },
+                    { service: "File Storage", status: "online", latency: "67ms" },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          item.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                        }`} />
+                        <span className="text-sm font-medium text-gray-700">
+                          {item.service}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">
+                          {item.latency}
+                        </span>
+                        <span className={`text-xs font-medium ${
+                          item.status === 'online' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-6 py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4">Pronto para começar?</h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Acesse o dashboard e comece a gerenciar seus processos de cidadania agora mesmo.
-          </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-xl transition-all duration-200 text-lg font-semibold"
-          >
-            Acessar Dashboard
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-        </div>
-      </section>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">
+                      Última verificação: há 2 minutos
+                    </span>
+                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                      Ver detalhes
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* List View */}
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                Processos ({filteredServices.length})
+              </h2>
+            </div>
 
-      {/* Footer */}
-      <footer className="border-t bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8">
-          <div className="text-center text-gray-600">
-            <p>© 2025 Lusio Backoffice. Todos os direitos reservados.</p>
-            <p className="mt-2 text-sm">Sistema de gestão de processos de cidadania portuguesa</p>
-          </div>
-        </div>
-      </footer>
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nome
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Criado Em
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {filteredServices.map((service) => (
+                      <tr
+                        key={service.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleServiceClick(service as ServiceWithRelations)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500 font-mono">
+                            {service.id}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {service.user.fullName}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a
+                            href={`mailto:${service.user.email}`}
+                            className="text-sm text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {service.user.email}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <StatusBadge status={service.status} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600">
+                            {formatDate(service.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleServiceClick(service as ServiceWithRelations);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                          >
+                            Ver Detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {filteredServices.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">
+                      Nenhum processo encontrado
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Tente ajustar os filtros ou a busca
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* Service Modal */}
+      {selectedService && (
+        <ServiceModal
+          open={true}
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+        />
+      )}
     </div>
   );
 }

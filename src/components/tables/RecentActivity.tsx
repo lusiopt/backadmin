@@ -60,7 +60,7 @@ export function RecentActivity() {
           <p className="text-sm text-gray-500">Últimas atualizações</p>
         </div>
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/")}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
         >
           Ver todos

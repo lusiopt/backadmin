@@ -53,7 +53,7 @@ export default function PedidoDetailsPage() {
       <div className="p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Pedido não encontrado</h1>
-          <Link href="/dashboard" className="text-primary hover:underline">
+          <Link href="/" className="text-primary hover:underline">
             ← Voltar ao Dashboard
           </Link>
         </div>
@@ -150,7 +150,7 @@ export default function PedidoDetailsPage() {
     <div className="p-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/dashboard" className="text-primary hover:underline mb-4 inline-block">
+        <Link href="/" className="text-primary hover:underline mb-4 inline-block">
           ← Voltar
         </Link>
         <div className="flex items-center justify-between">
