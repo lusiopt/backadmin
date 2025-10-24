@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { services } = useServices();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"dashboard" | "list">("dashboard");
+  const [viewMode, setViewMode] = useState<"dashboard" | "list" | "by-user">("dashboard");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
@@ -90,6 +90,25 @@ export default function DashboardPage() {
     });
   }, [services, search, selectedStatuses, dateFrom, dateTo]);
 
+  // Group services by user
+  const servicesByUser = useMemo(() => {
+    const grouped = new Map<string, ServiceWithRelations[]>();
+
+    filteredServices.forEach((service) => {
+      const userId = service.user.id;
+      if (!grouped.has(userId)) {
+        grouped.set(userId, []);
+      }
+      grouped.get(userId)!.push(service as ServiceWithRelations);
+    });
+
+    return Array.from(grouped.entries()).map(([userId, userServices]) => ({
+      user: userServices[0].user,
+      services: userServices,
+      totalServices: userServices.length,
+    }));
+  }, [filteredServices]);
+
   // Quick actions
   const quickActions = [
     {
@@ -125,7 +144,7 @@ export default function DashboardPage() {
   ];
 
   const handleServiceClick = (service: ServiceWithRelations) => {
-    router.push(`/pedidos/${service.id}`);
+    setSelectedService(service);
   };
 
   return (
@@ -139,7 +158,7 @@ export default function DashboardPage() {
                 Sistema de Gestão - Lusio Cidadania
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                {viewMode === "dashboard" ? "Visão geral do sistema" : "Lista de processos"}
+                {viewMode === "dashboard" ? "Visão geral do sistema" : viewMode === "list" ? "Lista de processos" : "Agrupado por usuário"}
               </p>
             </div>
 
@@ -168,6 +187,18 @@ export default function DashboardPage() {
                 >
                   <span className="flex items-center gap-1.5">
                     📋 Lista
+                  </span>
+                </button>
+                <button
+                  onClick={() => setViewMode("by-user")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "by-user"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    👤 Por Usuário
                   </span>
                 </button>
               </div>
@@ -466,7 +497,7 @@ export default function DashboardPage() {
               </Card>
             </div>
           </>
-        ) : (
+        ) : viewMode === "list" ? (
           <>
             {/* List View */}
             <div className="mb-4 sm:mb-6">
@@ -562,6 +593,118 @@ export default function DashboardPage() {
                 )}
               </div>
             </Card>
+          </>
+        ) : (
+          <>
+            {/* By User View */}
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                Por Usuário ({servicesByUser.length} usuários)
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {servicesByUser.map((userGroup) => (
+                <Card key={userGroup.user.id} className="overflow-hidden">
+                  {/* User Header */}
+                  <div className="bg-gray-50 px-6 py-4 border-b">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {userGroup.user.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {userGroup.user.fullName}
+                          </h3>
+                          <a
+                            href={`mailto:${userGroup.user.email}`}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            {userGroup.user.email}
+                          </a>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {userGroup.totalServices}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {userGroup.totalServices === 1 ? "processo" : "processos"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Services Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="border-b bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            ID
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Criado Em
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Ações
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {userGroup.services.map((service) => (
+                          <tr
+                            key={service.id}
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setSelectedService(service)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500 font-mono">
+                                {service.id}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <StatusBadge status={service.status} />
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-600">
+                                {formatDate(service.createdAt)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedService(service);
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                              >
+                                Ver Detalhes
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              ))}
+
+              {servicesByUser.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">
+                    Nenhum usuário encontrado
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Tente ajustar os filtros ou a busca
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
