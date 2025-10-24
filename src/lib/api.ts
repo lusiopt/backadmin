@@ -52,7 +52,9 @@ class ApiService {
   async login(email: string, password: string): Promise<{ token: string; user: User }> {
     const response = await this.api.post('/auth/login', { email, password });
     this.token = response.data.token;
-    localStorage.setItem('authToken', this.token);
+    if (this.token) {
+      localStorage.setItem('authToken', this.token);
+    }
     return response.data;
   }
 
