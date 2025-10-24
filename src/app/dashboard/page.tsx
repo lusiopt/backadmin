@@ -569,6 +569,7 @@ export default function DashboardPage() {
       {/* Service Modal */}
       {selectedService && (
         <ServiceModal
+          open={true}
           service={selectedService}
           onClose={() => setSelectedService(null)}
         />
