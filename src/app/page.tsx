@@ -22,7 +22,8 @@ import {
   Search,
   ChevronRight,
   Users,
-  FileText
+  FileText,
+  ChevronDown
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -37,6 +38,7 @@ export default function DashboardPage() {
   const [dateTo, setDateTo] = useState("");
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -145,6 +147,18 @@ export default function DashboardPage() {
 
   const handleServiceClick = (service: ServiceWithRelations) => {
     setSelectedService(service);
+  };
+
+  const toggleUserExpand = (userId: string) => {
+    setExpandedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -604,40 +618,55 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {servicesByUser.map((userGroup) => (
-                <Card key={userGroup.user.id} className="overflow-hidden">
-                  {/* User Header */}
-                  <div className="bg-gray-50 px-6 py-4 border-b">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {userGroup.user.fullName.charAt(0).toUpperCase()}
+              {servicesByUser.map((userGroup) => {
+                const isExpanded = expandedUsers.has(userGroup.user.id);
+
+                return (
+                  <Card key={userGroup.user.id} className="overflow-hidden">
+                    {/* User Header - Clickable */}
+                    <div
+                      className="bg-gray-50 px-6 py-4 border-b cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => toggleUserExpand(userGroup.user.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {userGroup.user.fullName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {userGroup.user.fullName}
+                            </h3>
+                            <a
+                              href={`mailto:${userGroup.user.email}`}
+                              className="text-sm text-blue-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {userGroup.user.email}
+                            </a>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {userGroup.user.fullName}
-                          </h3>
-                          <a
-                            href={`mailto:${userGroup.user.email}`}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            {userGroup.user.email}
-                          </a>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-900">
-                          {userGroup.totalServices}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {userGroup.totalServices === 1 ? "processo" : "processos"}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-gray-900">
+                              {userGroup.totalServices}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {userGroup.totalServices === 1 ? "processo" : "processos"}
+                            </div>
+                          </div>
+                          <ChevronDown
+                            className={`w-5 h-5 text-gray-400 transition-transform ${
+                              isExpanded ? 'rotate-180' : ''
+                            }`}
+                          />
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Services Table */}
-                  <div className="overflow-x-auto">
+                    {/* Services Table - Collapsible */}
+                    {isExpanded && (
+                      <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="border-b bg-gray-50">
                         <tr>
@@ -690,9 +719,11 @@ export default function DashboardPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                </Card>
-              ))}
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
 
               {servicesByUser.length === 0 && (
                 <div className="text-center py-12">
