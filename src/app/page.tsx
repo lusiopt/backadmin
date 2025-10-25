@@ -424,7 +424,10 @@ export default function DashboardPage() {
                 onFilterChange={setSelectedStatuses}
                 onViewChange={setViewMode}
               />
-              <RecentActivity />
+              <RecentActivity
+                onServiceClick={handleServiceClick}
+                onViewAllClick={() => setViewMode("list")}
+              />
             </div>
 
             {/* Additional Info */}

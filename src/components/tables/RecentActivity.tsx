@@ -3,13 +3,17 @@
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { mockServices } from "@/lib/mockData";
+import { ServiceWithRelations } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useRouter } from "next/navigation";
 import { Clock, User, FileText, ArrowRight } from "lucide-react";
 
-export function RecentActivity() {
-  const router = useRouter();
+interface RecentActivityProps {
+  onServiceClick?: (service: ServiceWithRelations) => void;
+  onViewAllClick?: () => void;
+}
+
+export function RecentActivity({ onServiceClick, onViewAllClick }: RecentActivityProps) {
 
   // Pegar os 5 processos mais recentes ou com atualizações recentes
   const recentServices = mockServices
@@ -60,7 +64,7 @@ export function RecentActivity() {
           <p className="text-sm text-gray-500">Últimas atualizações</p>
         </div>
         <button
-          onClick={() => router.push("/")}
+          onClick={onViewAllClick}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
         >
           Ver todos
@@ -79,7 +83,7 @@ export function RecentActivity() {
             <div
               key={service.id}
               className="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-              onClick={() => router.push(`/pedidos/${service.id}`)}
+              onClick={() => onServiceClick?.(service as ServiceWithRelations)}
             >
               {/* Ícone */}
               <div className="text-2xl mt-1">
