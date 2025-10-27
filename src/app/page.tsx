@@ -293,6 +293,17 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Mobile Filter Backdrop */}
+      {(showStatusFilter || showDateFilter) && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[90] sm:hidden"
+          onClick={() => {
+            setShowStatusFilter(false);
+            setShowDateFilter(false);
+          }}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
@@ -459,10 +470,10 @@ export default function DashboardPage() {
                   </button>
 
                   {showStatusFilter && (
-                    <div className="absolute top-full mt-2 right-0 left-0 sm:left-auto sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 max-w-[calc(100vw-2rem)]">
+                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[100] max-h-[60vh] overflow-y-auto">
                       <div className="space-y-2">
                         {uniqueStatuses.map((status) => (
-                          <label key={status} className="flex items-center gap-2 cursor-pointer">
+                          <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
                             <input
                               type="checkbox"
                               checked={status ? selectedStatuses.includes(status) : false}
@@ -482,7 +493,7 @@ export default function DashboardPage() {
                       {selectedStatuses.length > 0 && (
                         <button
                           onClick={() => setSelectedStatuses([])}
-                          className="mt-3 text-sm text-blue-600 hover:text-blue-700"
+                          className="mt-3 w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
                         >
                           Limpar filtros
                         </button>
@@ -503,28 +514,28 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="absolute top-full mt-2 right-0 left-0 sm:left-auto sm:w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-3 sm:p-4 z-50 max-w-[calc(100vw-2rem)]">
+                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[100]">
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             De:
                           </label>
                           <input
                             type="date"
                             value={dateFrom}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             Até:
                           </label>
                           <input
                             type="date"
                             value={dateTo}
                             onChange={(e) => setDateTo(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         {(dateFrom || dateTo) && (
@@ -533,7 +544,7 @@ export default function DashboardPage() {
                               setDateFrom("");
                               setDateTo("");
                             }}
-                            className="text-sm text-blue-600 hover:text-blue-700"
+                            className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium mt-2"
                           >
                             Limpar datas
                           </button>
