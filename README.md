@@ -5,7 +5,7 @@
 ## 📊 Status do Desenvolvimento
 
 ```
-Progresso: ██████████ 90%
+Progresso: ██████████ 95%
 
 ✅ Dashboard com estatísticas
 ✅ Listagem de processos
@@ -17,6 +17,8 @@ Progresso: ██████████ 90%
 ✅ Sistema de permissões por role
 ✅ Permissões por fase do processo
 ✅ Página de configurações com tabs
+✅ Mobile Responsiveness completa
+✅ Brand header com logo
 🔄 Integração com API real
 ⏳ Modo produção
 ```
@@ -92,6 +94,17 @@ Progresso: ██████████ 90%
 - **Cores e ícones intuitivos**
 - **Feedback visual** em todas ações
 - **Loading states** apropriados
+
+### 9. Mobile Responsiveness (✨ NOVO)
+- **Design totalmente responsivo** com suporte mobile-first
+- **Brand Header** com logo e título da empresa
+- **Breakpoints otimizados**: Mobile (<768px), Tablet (768-1023px), Desktop (≥1024px)
+- **Componentes compactos** para telas pequenas
+- **Filtros centralizados** em todos os dispositivos
+- **Settings visível** em mobile e desktop
+- **iOS Safari compatível** com fixes específicos para inputs
+- **Touch-friendly** com áreas de toque otimizadas
+- **Testado** em iPhone SE, iPhone 12 Pro, Samsung Galaxy S21, iPad Mini, Desktop 1920px
 
 ## 🛠️ Tecnologias
 
@@ -272,6 +285,175 @@ Administradores podem:
 - Mensagens de erro claras
 - Confirmações antes de ações destrutivas
 
+## 📱 Mobile Responsiveness - Guia Técnico
+
+### Implementação
+
+O sistema foi desenvolvido com abordagem **mobile-first**, garantindo experiência otimizada em todos dispositivos.
+
+#### Breakpoints Tailwind CSS
+
+```javascript
+{
+  // Mobile (padrão)
+  default: '< 640px',
+
+  // Tablet
+  sm: '≥ 640px',  // Small screens
+  md: '≥ 768px',  // Medium screens
+  lg: '≥ 1024px', // Large screens (Desktop)
+
+  // Desktop grande
+  xl: '≥ 1280px',
+  '2xl': '≥ 1536px'
+}
+```
+
+#### Componentes Responsivos
+
+**1. Brand Header (`src/app/page.tsx:296-310`)**
+```tsx
+// Cabeçalho da marca com logo e título
+<div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+  <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+    {/* Logo Lusio Cidadania */}
+    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg">
+      <span className="text-2xl sm:text-3xl font-bold text-blue-600">L</span>
+    </div>
+  </div>
+</div>
+```
+
+**Como substituir o logo placeholder:**
+```tsx
+// Substituir de:
+<span className="text-2xl sm:text-3xl font-bold text-blue-600">L</span>
+
+// Para:
+<Image
+  src="/logo-lusio.png"
+  alt="Lusio Cidadania"
+  width={48}
+  height={48}
+  className="w-10 h-10 sm:w-12 sm:h-12"
+/>
+```
+
+**2. ProfileSwitcher Compacto (`src/components/ProfileSwitcher.tsx:54-66`)**
+```tsx
+// Mobile: ícones menores, sem texto "Perfil Atual"
+<button className="px-2 sm:px-3 py-1.5 sm:py-2">
+  <RoleIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+  <span className="text-xs opacity-75 hidden sm:inline">Perfil Atual</span>
+  <span className="font-semibold text-xs sm:text-sm">{roleLabels[user.role]}</span>
+</button>
+```
+
+**3. Settings Button Visível (`src/app/page.tsx:393-402`)**
+```tsx
+// Removido: hidden sm:block
+// Adicionado: paddings responsivos
+<button className="p-1 sm:p-1.5 md:p-2 rounded-lg">
+  <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+</button>
+```
+
+**4. Filtros Centralizados (`src/app/page.tsx:440`)**
+```tsx
+// Centralizado em mobile e desktop
+<div className="flex flex-wrap gap-2 justify-center">
+  {/* Botões de filtro */}
+</div>
+```
+
+#### Fixes para iOS Safari
+
+**Problema:** Inputs `type="date"` transbordavam do container no Safari/iOS
+
+**Solução:** (`src/app/globals.css:122-143`)
+```css
+/* Fix para inputs type="date" no Safari/iOS */
+input[type="date"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Controla o ícone do calendário */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* Previne zoom automático em mobile */
+@media screen and (max-width: 768px) {
+  input[type="date"] {
+    font-size: 16px !important;
+  }
+}
+```
+
+#### Testes de Responsividade
+
+**Script automatizado:** `test-responsive-final.js`
+
+```bash
+# Rodar testes em múltiplos dispositivos
+node test-responsive-final.js
+
+# Dispositivos testados:
+# - iPhone SE (375x667)
+# - iPhone 12 Pro (390x844)
+# - Samsung Galaxy S21 (360x800)
+# - iPad Mini (768x1024)
+# - Desktop 1920 (1920x1080)
+
+# Screenshots gerados em: screenshots/final-*
+```
+
+**Testes manuais:**
+- ✅ Navegação mobile (hamburger menu)
+- ✅ Cards responsivos vs tabelas
+- ✅ Modais em telas pequenas
+- ✅ Inputs e formulários touch-friendly
+- ✅ Botões com área de toque adequada (mínimo 44px)
+
+#### Estrutura de Layout
+
+**Mobile (<1024px):**
+- Cards verticais para processos
+- Menu hamburger
+- Filtros empilhados
+- Ícones compactos
+- ProfileSwitcher sem texto adicional
+
+**Desktop (≥1024px):**
+- Tabela completa de processos
+- Menu horizontal
+- Filtros em linha
+- Ícones tamanho normal
+- ProfileSwitcher com texto completo
+
+### Customização
+
+Para ajustar breakpoints do projeto:
+
+```typescript
+// tailwind.config.ts
+module.exports = {
+  theme: {
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',  // Ponto principal mobile → desktop
+      'xl': '1280px',
+      '2xl': '1536px',
+    }
+  }
+}
+```
+
 ## 🤝 Integração com Equipe Externa
 
 O backend (`luzio-api`) é mantido por equipe terceirizada.
@@ -305,19 +487,28 @@ window.__REACT_QUERY_STATE__
 
 **Desenvolvedor:** Euclides Gomes + Claude Code
 **Última Atualização:** 27 Outubro 2025
-**Versão:** v0.5.1
+**Versão:** v0.6.0
 
 ---
 
-🎉 **Sistema 90% completo com sistema de permissões robusto!**
+🎉 **Sistema 95% completo com mobile responsiveness total!**
 
 ## 🏷️ Versões
 
-- **v0.5.1** (atual - 27/10/2025)
+- **v0.6.0** (atual - 27/10/2025)
+  - 📱 **Mobile Responsiveness Completa**
+  - Brand header com logo Lusio Cidadania
+  - Settings visível em mobile
+  - ProfileSwitcher compacto
+  - Filtros centralizados em todos dispositivos
+  - Fixes específicos para iOS Safari (inputs date)
+  - Testado em 5 dispositivos diferentes
+  - Deploy em dev: https://dev.lusio.market:3004/backadmin
+
+- **v0.5.1** (27/10/2025)
   - Filtro de Comunicações Pendentes
   - Toggle visual com badge dinâmico
   - Combinação com outros filtros (AND lógico)
-  - Deploy em dev: https://dev.lusio.market/backadmin
 
 - **v0.5.0** (27/10/2025)
   - Sistema completo de roles e permissões (RBAC)
