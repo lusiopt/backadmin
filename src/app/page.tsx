@@ -456,7 +456,7 @@ export default function DashboardPage() {
                   )}
                 </button>
 
-                <div className="relative">
+                <div className="relative z-[200]">
                   <button
                     onClick={() => setShowStatusFilter(!showStatusFilter)}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -502,7 +502,7 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                <div className="relative">
+                <div className="relative z-[200]">
                   <button
                     onClick={() => setShowDateFilter(!showDateFilter)}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
