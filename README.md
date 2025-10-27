@@ -43,6 +43,7 @@ Progresso: ██████████ 90%
 - **Marcar como quase completo**
 - **Formulários validados**
 - **Confirmações de segurança**
+- **Interface limpa** sem blocos de instruções
 
 ### 4. Sistema de Documentos
 - **Upload drag & drop**
@@ -68,7 +69,21 @@ Progresso: ██████████ 90%
 - **Persistência** em localStorage
 - **Preview de permissões** ativas
 
-### 7. Interface Moderna
+### 7. Tab Histórico
+- **Timeline completa** de todos eventos do processo
+- **Agregação automática** de:
+  - Criação e atualizações do processo
+  - Mudanças de status com detalhes
+  - Mensagens (advogada e backoffice)
+  - Uploads de documentos
+  - Pagamentos (taxa e governo)
+  - Submissão e atribuição
+- **Ordenação cronológica** (mais recente primeiro)
+- **Ícones e cores** diferenciados por tipo de evento
+- **Data/hora formatada** para cada evento
+- **Scroll vertical** para históricos longos
+
+### 8. Interface Moderna
 - **Design responsivo** mobile-first
 - **Animações suaves** com Framer Motion
 - **Cores e ícones intuitivos**
