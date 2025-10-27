@@ -75,14 +75,18 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
       return;
     }
 
+    if (!user) {
+      alert("Erro: usuário não autenticado");
+      return;
+    }
+
     // Criar mensagem da advogada
-    const { user } = useAuth();
     const newMessage: Message = {
       id: `msg_${Date.now()}`,
       serviceId: service.id,
-      senderId: user!.id,
-      senderName: user!.fullName,
-      senderRole: user!.role,
+      senderId: user.id,
+      senderName: user.fullName,
+      senderRole: user.role,
       type: MessageType.LAWYER_REQUEST,
       content: almostNote,
       status: MessageStatus.UNREAD,
@@ -106,14 +110,17 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
   };
 
   const handleSendMessage = (input: CreateMessageInput) => {
-    const { user } = useAuth();
+    if (!user) {
+      alert("Erro: usuário não autenticado");
+      return;
+    }
 
     const newMessage: Message = {
       id: `msg_${Date.now()}`,
       serviceId: service.id,
-      senderId: user!.id,
-      senderName: user!.fullName,
-      senderRole: user!.role,
+      senderId: user.id,
+      senderName: user.fullName,
+      senderRole: user.role,
       type: input.type || MessageType.USER,
       content: input.content,
       status: MessageStatus.UNREAD,
@@ -129,15 +136,14 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
 
   // Marcar mensagens como lidas quando abrir a tab Comunicações
   useEffect(() => {
-    if (activeTab === "comunicacoes" && service.messages) {
-      const { user } = useAuth();
+    if (activeTab === "comunicacoes" && service.messages && user) {
       const unreadMessages = service.messages.filter(
-        m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id
+        m => m.status === MessageStatus.UNREAD && m.senderId !== user.id
       );
 
       if (unreadMessages.length > 0) {
         const updatedMessages = service.messages.map(m =>
-          m.status === MessageStatus.UNREAD && m.senderId !== user?.id
+          m.status === MessageStatus.UNREAD && m.senderId !== user.id
             ? { ...m, status: MessageStatus.READ, readAt: new Date().toISOString() }
             : m
         );
@@ -145,7 +151,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
         updateService(service.id, { messages: updatedMessages });
       }
     }
-  }, [activeTab, service.id]);
+  }, [activeTab, service.id, service.messages, user, updateService]);
 
   const handleAddIRN = () => {
     if (!entity || !reference) {
