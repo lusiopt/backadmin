@@ -7,6 +7,71 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.4.0] - 2025-10-27
+
+### ✨ Adicionado
+
+#### Sistema de Ordenação de Colunas
+- Ordenação clicável em colunas da tabela (Nome, Email, Status, Criado Em)
+- Indicadores visuais de ordenação com ícones:
+  - `ArrowUpDown` (cinza) - Coluna não ordenada
+  - `ArrowUp` (azul) - Ordenação ascendente
+  - `ArrowDown` (azul) - Ordenação descendente
+- Toggle automático entre ASC/DESC ao clicar na mesma coluna
+- Reset para página 1 ao mudar ordenação
+
+#### Sistema de Paginação
+- Controle de itens por página (10, 25, 50, 100)
+- Navegação entre páginas com botões "Anterior" e "Próxima"
+- Numeração de páginas inteligente:
+  - Sempre mostra primeira e última página
+  - Mostra página atual e ±1 página adjacente
+  - Reticências (...) para indicar gap entre páginas
+- Contador de resultados: "Mostrando X a Y de Z resultados"
+- Estados disabled em botões quando não há mais páginas
+
+### 🔧 Modificado
+
+#### Refatoração de Lógica de Filtragem
+- `filteredServices` renomeado para `filteredAndSortedServices`
+- Lógica de ordenação integrada ao useMemo de filtragem
+- Novo useMemo `paginatedServices` para slice paginado
+- Constante `totalPages` calculada automaticamente
+- Handlers `handleSort()` e `renderSortIcon()` para controle de UI
+
+#### Melhorias na UI da Lista
+- Header da lista agora inclui seletor de itens por página
+- Layout flex para alinhar título e controles
+- Controles de paginação em rodapé com background cinza claro
+- Botões de ordenação em cabeçalhos de coluna com hover state
+
+### 🐛 Corrigido
+- Referências a `filteredServices` atualizadas para `filteredAndSortedServices`
+- Correção no `servicesByUser` para usar dados filtrados e ordenados
+
+### 📊 Comportamentos
+- Ordenação mantém filtros ativos
+- Paginação reseta ao mudar ordenação
+- Paginação reseta ao mudar quantidade de itens por página
+- Indicador visual sempre mostra coluna e direção ativa
+
+### 📝 Ícones Adicionados
+- `ArrowUpDown` - Ordenação neutra
+- `ArrowUp` - Ordenação ascendente
+- `ArrowDown` - Ordenação descendente
+- `ChevronLeft` - Botão "Anterior"
+- `ChevronRight` - Botão "Próxima" (já existia)
+
+### 📦 Arquivos Modificados
+- `src/app/page.tsx`:
+  - Adicionados states: `sortColumn`, `sortDirection`, `currentPage`, `itemsPerPage`
+  - Implementadas funções: `handleSort()`, `renderSortIcon()`
+  - Refatorado: `filteredServices` → `filteredAndSortedServices`
+  - Adicionado: `paginatedServices` useMemo
+  - Modificada tabela da view "Lista" com ordenação e paginação
+
+---
+
 ## [0.3.0] - 2025-10-23
 
 ### ✨ Adicionado
@@ -121,13 +186,11 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## Roadmap Futuro
 
-### v0.4.0 (Planejado)
+### v0.5.0 (Planejado)
 - [ ] Estatísticas por usuário (quantos em cada status)
 - [ ] Exportação de dados (CSV/Excel)
-- [ ] Ordenação de colunas (ASC/DESC)
-- [ ] Paginação da lista
 
-### v0.5.0 (Planejado)
+### v0.6.0 (Planejado)
 - [ ] Integração com API real
 - [ ] Sistema de autenticação OAuth 2.0
 - [ ] Roles e permissões (admin, operador, visualizador)

@@ -23,7 +23,11 @@ import {
   ChevronRight,
   Users,
   FileText,
-  ChevronDown
+  ChevronDown,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -40,11 +44,43 @@ export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
+  // Sorting
+  const [sortColumn, setSortColumn] = useState<'name' | 'email' | 'status' | 'createdAt' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
+  };
+
+  // Handle sorting
+  const handleSort = (column: 'name' | 'email' | 'status' | 'createdAt') => {
+    if (sortColumn === column) {
+      // Toggle direction if clicking same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
+  };
+
+  // Render sort icon
+  const renderSortIcon = (column: 'name' | 'email' | 'status' | 'createdAt') => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4 text-blue-600" />
+      : <ArrowDown className="w-4 h-4 text-blue-600" />;
   };
 
   // Get unique statuses
@@ -53,9 +89,9 @@ export default function DashboardPage() {
     return Array.from(statuses);
   }, [services]);
 
-  // Filtered services
-  const filteredServices = useMemo(() => {
-    return services.filter((service) => {
+  // Filtered and sorted services
+  const filteredAndSortedServices = useMemo(() => {
+    let filtered = services.filter((service) => {
       // Search filter
       if (search) {
         const searchLower = search.toLowerCase();
@@ -90,13 +126,58 @@ export default function DashboardPage() {
 
       return true;
     });
-  }, [services, search, selectedStatuses, dateFrom, dateTo]);
+
+    // Apply sorting
+    if (sortColumn) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortColumn) {
+          case 'name':
+            aValue = a.user.fullName.toLowerCase();
+            bValue = b.user.fullName.toLowerCase();
+            break;
+          case 'email':
+            aValue = a.user.email.toLowerCase();
+            bValue = b.user.email.toLowerCase();
+            break;
+          case 'status':
+            aValue = a.status?.toLowerCase() || '';
+            bValue = b.status?.toLowerCase() || '';
+            break;
+          case 'createdAt':
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [services, search, selectedStatuses, dateFrom, dateTo, sortColumn, sortDirection]);
+
+  // Paginated services for list view
+  const paginatedServices = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedServices.slice(startIndex, endIndex);
+  }, [filteredAndSortedServices, currentPage, itemsPerPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredAndSortedServices.length / itemsPerPage);
 
   // Group services by user
   const servicesByUser = useMemo(() => {
     const grouped = new Map<string, ServiceWithRelations[]>();
 
-    filteredServices.forEach((service) => {
+    filteredAndSortedServices.forEach((service) => {
       const userId = service.user.id;
       if (!grouped.has(userId)) {
         grouped.set(userId, []);
@@ -109,7 +190,7 @@ export default function DashboardPage() {
       services: userServices,
       totalServices: userServices.length,
     }));
-  }, [filteredServices]);
+  }, [filteredAndSortedServices]);
 
   // Quick actions
   const quickActions = [
@@ -523,10 +604,26 @@ export default function DashboardPage() {
         ) : viewMode === "list" ? (
           <>
             {/* List View */}
-            <div className="mb-4 sm:mb-6">
+            <div className="mb-4 sm:mb-6 flex items-center justify-between">
               <h2 className="text-xl sm:text-2xl font-bold">
-                Processos ({filteredServices.length})
+                Processos ({filteredAndSortedServices.length})
               </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Items por página:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
             </div>
 
             <Card>
@@ -538,16 +635,40 @@ export default function DashboardPage() {
                         ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Nome
+                        <button
+                          onClick={() => handleSort('name')}
+                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
+                        >
+                          Nome
+                          {renderSortIcon('name')}
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
+                        <button
+                          onClick={() => handleSort('email')}
+                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
+                        >
+                          Email
+                          {renderSortIcon('email')}
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        <button
+                          onClick={() => handleSort('status')}
+                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
+                        >
+                          Status
+                          {renderSortIcon('status')}
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Criado Em
+                        <button
+                          onClick={() => handleSort('createdAt')}
+                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
+                        >
+                          Criado Em
+                          {renderSortIcon('createdAt')}
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ações
@@ -555,7 +676,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {filteredServices.map((service) => (
+                    {paginatedServices.map((service) => (
                       <tr
                         key={service.id}
                         className="hover:bg-gray-50 cursor-pointer"
@@ -604,7 +725,7 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
 
-                {filteredServices.length === 0 && (
+                {filteredAndSortedServices.length === 0 && (
                   <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">
                       Nenhum processo encontrado
@@ -615,6 +736,66 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {filteredAndSortedServices.length > 0 && (
+                <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredAndSortedServices.length)} de {filteredAndSortedServices.length} resultados
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                          // Show first page, last page, current page, and pages around current
+                          return page === 1 ||
+                                 page === totalPages ||
+                                 (page >= currentPage - 1 && page <= currentPage + 1);
+                        })
+                        .map((page, index, array) => {
+                          // Add ellipsis if there's a gap
+                          const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+
+                          return (
+                            <div key={page} className="flex items-center gap-1">
+                              {showEllipsisBefore && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <button
+                                onClick={() => setCurrentPage(page)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                  currentPage === page
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      Próxima
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </Card>
           </>
         ) : (
