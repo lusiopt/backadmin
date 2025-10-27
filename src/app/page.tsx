@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useServices } from "@/contexts/ServicesContext";
-import { ServiceStatus, ServiceWithRelations, Permission } from "@/lib/types";
+import { Service, ServiceStatus, ServiceWithRelations, Permission } from "@/lib/types";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,8 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronLeft,
-  Shield
+  Shield,
+  MessageSquare
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -47,6 +48,21 @@ export default function DashboardPage() {
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+
+  // Função auxiliar para contar mensagens não lidas de um serviço
+  const getUnreadMessagesCount = (service: Service): number => {
+    if (!service.messages || !user) return 0;
+    return service.messages.filter(
+      (m) => m.status === "unread" && m.senderId !== user.id
+    ).length;
+  };
+
+  // Calcular total de mensagens não lidas (todas as comunicações)
+  const totalUnreadMessages = useMemo(() => {
+    return services.reduce((total, service) => {
+      return total + getUnreadMessagesCount(service);
+    }, 0);
+  }, [services, user]);
 
   // Sorting
   const [sortColumn, setSortColumn] = useState<'name' | 'email' | 'status' | 'createdAt' | null>(null);
@@ -317,6 +333,23 @@ export default function DashboardPage() {
                 title="Atualizar dados"
               >
                 <RefreshCw className="w-5 h-5 text-gray-600" />
+              </button>
+
+              {/* Notifications Bell */}
+              <button
+                onClick={() => {
+                  // TODO: Abrir painel de notificações
+                  setViewMode("list");
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                title={`${totalUnreadMessages} notificação${totalUnreadMessages !== 1 ? 'ões' : ''} não lida${totalUnreadMessages !== 1 ? 's' : ''}`}
+              >
+                <Bell className="w-5 h-5 text-gray-600" />
+                {totalUnreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                    {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
+                  </span>
+                )}
               </button>
 
               {/* Settings - Only for admins */}
@@ -715,9 +748,14 @@ export default function DashboardPage() {
                                 e.stopPropagation();
                                 handleServiceClick(service as ServiceWithRelations);
                               }}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium relative inline-flex items-center gap-2"
                             >
                               Ver Detalhes
+                              {getUnreadMessagesCount(service) > 0 && (
+                                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                                  {getUnreadMessagesCount(service)}
+                                </span>
+                              )}
                             </button>
                           )}
                         </td>
@@ -902,9 +940,14 @@ export default function DashboardPage() {
                                     e.stopPropagation();
                                     setSelectedService(service);
                                   }}
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium relative inline-flex items-center gap-2"
                                 >
                                   Ver Detalhes
+                                  {getUnreadMessagesCount(service) > 0 && (
+                                    <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                                      {getUnreadMessagesCount(service)}
+                                    </span>
+                                  )}
                                 </button>
                               )}
                             </td>
