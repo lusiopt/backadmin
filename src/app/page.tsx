@@ -14,6 +14,7 @@ import { StatsCards } from "@/components/stats/StatsCards";
 import { ProcessChart } from "@/components/charts/ProcessChart";
 import { RecentActivity } from "@/components/tables/RecentActivity";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
+import { NotificationPanel } from "@/components/NotificationPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Bell,
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
 
   // Função auxiliar para contar mensagens não lidas de um serviço
   const getUnreadMessagesCount = (service: Service): number => {
@@ -62,6 +64,11 @@ export default function DashboardPage() {
     return services.reduce((total, service) => {
       return total + getUnreadMessagesCount(service);
     }, 0);
+  }, [services, user]);
+
+  // Calcular processos com notificações (serviços que têm mensagens não lidas)
+  const servicesWithNotifications = useMemo(() => {
+    return services.filter(service => getUnreadMessagesCount(service) > 0);
   }, [services, user]);
 
   // Sorting
@@ -220,6 +227,15 @@ export default function DashboardPage() {
   // Quick actions (using accessible services only)
   const quickActions = [
     {
+      label: "Comunicações Pendentes",
+      count: servicesWithNotifications.length,
+      icon: <MessageSquare className="w-5 h-5" />,
+      color: "bg-blue-100 text-blue-700",
+      action: () => {
+        setShowNotificationPanel(true);
+      }
+    },
+    {
       label: "Processos Pendentes",
       count: accessibleServices.filter(s => s.status === "Passo 7 Esperando").length,
       icon: <Bell className="w-5 h-5" />,
@@ -336,21 +352,35 @@ export default function DashboardPage() {
               </button>
 
               {/* Notifications Bell */}
-              <button
-                onClick={() => {
-                  // TODO: Abrir painel de notificações
-                  setViewMode("list");
-                }}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
-                title={`${totalUnreadMessages} notificação${totalUnreadMessages !== 1 ? 'ões' : ''} não lida${totalUnreadMessages !== 1 ? 's' : ''}`}
-              >
-                <Bell className="w-5 h-5 text-gray-600" />
-                {totalUnreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
-                    {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
-                  </span>
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotificationPanel(!showNotificationPanel)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  title={`${totalUnreadMessages} notificação${totalUnreadMessages !== 1 ? 'ões' : ''} não lida${totalUnreadMessages !== 1 ? 's' : ''}`}
+                >
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  {totalUnreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                      {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Panel Popup */}
+                {showNotificationPanel && user && (
+                  <NotificationPanel
+                    services={services}
+                    currentUserId={user.id}
+                    onClose={() => setShowNotificationPanel(false)}
+                    onOpenService={(serviceId) => {
+                      const service = services.find(s => s.id === serviceId);
+                      if (service) {
+                        setSelectedService(service as ServiceWithRelations);
+                      }
+                    }}
+                  />
                 )}
-              </button>
+              </div>
 
               {/* Settings - Only for admins */}
               {hasPermission(Permission.MANAGE_USERS) && (
