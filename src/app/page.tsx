@@ -293,17 +293,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Filter Backdrop */}
-      {(showStatusFilter || showDateFilter) && (
-        <div
-          className="fixed inset-0 bg-black/50 z-[90] sm:hidden"
-          onClick={() => {
-            setShowStatusFilter(false);
-            setShowDateFilter(false);
-          }}
-        />
-      )}
-
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
@@ -471,6 +460,15 @@ export default function DashboardPage() {
 
                   {showStatusFilter && (
                     <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200] max-h-[60vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-3 sm:hidden">
+                        <span className="text-sm font-medium text-gray-700">Filtrar por Status</span>
+                        <button
+                          onClick={() => setShowStatusFilter(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {uniqueStatuses.map((status) => (
                           <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
@@ -515,6 +513,15 @@ export default function DashboardPage() {
 
                   {showDateFilter && (
                     <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
+                      <div className="flex items-center justify-between mb-3 sm:hidden">
+                        <span className="text-sm font-medium text-gray-700">Filtrar por Data</span>
+                        <button
+                          onClick={() => setShowDateFilter(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
