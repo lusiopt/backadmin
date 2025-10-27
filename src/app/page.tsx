@@ -293,16 +293,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
+      {/* Brand Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
         <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-center sm:justify-start gap-3">
+            {/* Logo Placeholder - Replace with actual logo image */}
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg flex items-center justify-center">
+              <span className="text-2xl sm:text-3xl font-bold text-blue-600">L</span>
+            </div>
+            <div className="text-center sm:text-left">
+              <h1 className="text-lg sm:text-xl font-bold">Lusio Cidadania</h1>
+              <p className="text-xs sm:text-sm text-blue-100">Sistema de Gestão de Processos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Header */}
+      <header className="bg-white border-b sticky top-0 z-40">
+        <div className="px-3 sm:px-4 lg:px-8 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">
-                Sistema de Gestão - Lusio
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">
-                {viewMode === "dashboard" ? "Visão geral" : viewMode === "list" ? "Lista de processos" : "Por usuário"}
+              <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                {viewMode === "dashboard" ? "📊 Visão Geral" : viewMode === "list" ? "📋 Lista de Processos" : "👤 Por Usuário"}
               </p>
             </div>
 
@@ -424,7 +437,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Filter Buttons */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-center">
                 {/* Pending Communications Filter */}
                 <button
                   onClick={() => setShowPendingCommunications(!showPendingCommunications)}
