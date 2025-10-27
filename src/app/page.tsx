@@ -512,7 +512,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:inset-x-auto sm:right-0 sm:left-auto w-auto sm:w-72 max-w-[calc(100vw-2rem)] mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
+                    <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:inset-x-auto sm:right-0 sm:left-auto w-auto sm:w-72 max-w-[calc(100vw-2rem)] mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-3 sm:p-4 z-[200] overflow-hidden">
                       <div className="flex items-center justify-between mb-3 sm:hidden">
                         <span className="text-sm font-medium text-gray-700">Filtrar por Data</span>
                         <button
@@ -531,7 +531,8 @@ export default function DashboardPage() {
                             type="date"
                             value={dateFrom}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            className="w-full max-w-full box-border px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full sm:w-full max-w-full box-border px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            style={{ width: 'calc(100% - 4px)' }}
                           />
                         </div>
                         <div>
@@ -542,7 +543,8 @@ export default function DashboardPage() {
                             type="date"
                             value={dateTo}
                             onChange={(e) => setDateTo(e.target.value)}
-                            className="w-full max-w-full box-border px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full sm:w-full max-w-full box-border px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            style={{ width: 'calc(100% - 4px)' }}
                           />
                         </div>
                         {(dateFrom || dateTo) && (
