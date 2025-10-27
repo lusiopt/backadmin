@@ -30,8 +30,21 @@ const roleLabels = {
 export function ProfileSwitcher() {
   const { user, setUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!user) return null;
+  // Only render on client-side to avoid SSR issues
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || !user) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-gray-100 text-gray-400 text-sm">
+        <div className="w-4 h-4 animate-pulse bg-gray-300 rounded"></div>
+        <span className="text-xs">Carregando...</span>
+      </div>
+    );
+  }
 
   const RoleIcon = roleIcons[user.role];
 

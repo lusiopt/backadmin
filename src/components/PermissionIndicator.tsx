@@ -37,8 +37,21 @@ const permissionLabels: Record<Permission, string> = {
 export function PermissionIndicator() {
   const { user, hasPermission } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
 
-  if (!user) return null;
+  // Only render on client-side to avoid SSR issues
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || !user) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 text-xs bg-gray-100 rounded-lg">
+        <div className="w-3.5 h-3.5 animate-pulse bg-gray-300 rounded"></div>
+        <span className="text-gray-400">Carregando...</span>
+      </div>
+    );
+  }
 
   // Get user's permissions that they actually have
   const userPermissions = Object.values(Permission).filter(p => hasPermission(p));
