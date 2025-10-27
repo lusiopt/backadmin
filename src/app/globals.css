@@ -113,3 +113,59 @@ section{
 .blog-details h3 {
   @apply mb-6 text-2xl font-bold dark:text-white sm:text-[28px] sm:leading-[40px];
 }
+
+/* ========================================
+   WebKit/Safari Specific Fixes (iOS/macOS)
+   ======================================== */
+
+/* Fix para inputs type="date" no Safari/iOS */
+input[type="date"] {
+  /* Remove largura mínima padrão do Safari */
+  min-width: 0 !important;
+  /* Força o input a respeitar o container */
+  max-width: 100% !important;
+}
+
+/* Controla o ícone do calendário no Safari */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  /* Reduz o tamanho do ícone para dar mais espaço ao texto */
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* Controla o valor da data exibido */
+input[type="date"]::-webkit-date-and-time-value {
+  /* Permite que o texto quebre se necessário */
+  text-align: left;
+  min-width: 0;
+}
+
+/* Remove spin buttons em inputs numéricos no Safari */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Melhora o comportamento de scroll em dispositivos iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Previne zoom automático em inputs no iOS Safari */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="number"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
