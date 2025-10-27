@@ -175,12 +175,12 @@ export default function DashboardPage() {
 
         switch (sortColumn) {
           case 'name':
-            aValue = a.user.fullName.toLowerCase();
-            bValue = b.user.fullName.toLowerCase();
+            aValue = a.user?.fullName?.toLowerCase() || '';
+            bValue = b.user?.fullName?.toLowerCase() || '';
             break;
           case 'email':
-            aValue = a.user.email.toLowerCase();
-            bValue = b.user.email.toLowerCase();
+            aValue = a.user?.email?.toLowerCase() || '';
+            bValue = b.user?.email?.toLowerCase() || '';
             break;
           case 'status':
             aValue = a.status?.toLowerCase() || '';
@@ -218,7 +218,7 @@ export default function DashboardPage() {
     const grouped = new Map<string, ServiceWithRelations[]>();
 
     filteredAndSortedServices.forEach((service) => {
-      const userId = service.user.id;
+      const userId = service.user?.id || '';
       if (!grouped.has(userId)) {
         grouped.set(userId, []);
       }
@@ -807,17 +807,21 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {service.user.fullName}
+                            {service.user?.fullName || 'N/A'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <a
-                            href={`mailto:${service.user.email}`}
-                            className="text-sm text-blue-600 hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {service.user.email}
-                          </a>
+                          {service.user?.email ? (
+                            <a
+                              href={`mailto:${service.user.email}`}
+                              className="text-sm text-blue-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {service.user.email}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-gray-400">N/A</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge status={service.status} />
@@ -990,6 +994,7 @@ export default function DashboardPage() {
 
             <div className="space-y-4">
               {servicesByUser.map((userGroup) => {
+                if (!userGroup.user) return null;
                 const isExpanded = expandedUsers.has(userGroup.user.id);
 
                 return (
@@ -997,24 +1002,28 @@ export default function DashboardPage() {
                     {/* User Header - Clickable */}
                     <div
                       className="bg-gray-50 px-6 py-4 border-b cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => toggleUserExpand(userGroup.user.id)}
+                      onClick={() => toggleUserExpand(userGroup.user?.id || '')}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {userGroup.user.fullName.charAt(0).toUpperCase()}
+                            {userGroup.user?.fullName?.charAt(0).toUpperCase() || 'U'}
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {userGroup.user.fullName}
+                              {userGroup.user?.fullName || 'N/A'}
                             </h3>
-                            <a
-                              href={`mailto:${userGroup.user.email}`}
-                              className="text-sm text-blue-600 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {userGroup.user.email}
-                            </a>
+                            {userGroup.user?.email ? (
+                              <a
+                                href={`mailto:${userGroup.user.email}`}
+                                className="text-sm text-blue-600 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {userGroup.user.email}
+                              </a>
+                            ) : (
+                              <span className="text-sm text-gray-400">N/A</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
