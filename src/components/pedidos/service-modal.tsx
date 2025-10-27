@@ -21,7 +21,7 @@ interface ServiceModalProps {
 
 export function ServiceModal({ service: initialService, open, onClose }: ServiceModalProps) {
   const { getService, updateService } = useServices();
-  const { hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
   const service = getService(initialService.id) || initialService;
 
   const [activeTab, setActiveTab] = useState("acoes");
