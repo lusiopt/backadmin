@@ -15,6 +15,7 @@ import { ProcessChart } from "@/components/charts/ProcessChart";
 import { RecentActivity } from "@/components/tables/RecentActivity";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { NotificationPanel } from "@/components/NotificationPanel";
+import { MobileServiceCard } from "@/components/tables/MobileServiceCard";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Bell,
@@ -294,54 +295,54 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-40">
-        <div className="px-4 sm:px-8 py-4">
+        <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sistema de Gestão - Lusio Cidadania
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">
+                Sistema de Gestão - Lusio
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {viewMode === "dashboard" ? "Visão geral do sistema" : viewMode === "list" ? "Lista de processos" : "Agrupado por usuário"}
+              <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">
+                {viewMode === "dashboard" ? "Visão geral" : viewMode === "list" ? "Lista de processos" : "Por usuário"}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 sm:gap-3 ml-2">
               {/* View Toggle */}
-              <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+              <div className="flex gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-gray-100 rounded-lg">
                 <button
                   onClick={() => setViewMode("dashboard")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
                     viewMode === "dashboard"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    📊 Dashboard
+                  <span className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="hidden sm:inline">📊</span> Dashboard
                   </span>
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
                     viewMode === "list"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    📋 Lista
+                  <span className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="hidden sm:inline">📋</span> Lista
                   </span>
                 </button>
                 <button
                   onClick={() => setViewMode("by-user")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
                     viewMode === "by-user"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    👤 Por Usuário
+                  <span className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="hidden sm:inline">👤</span> <span className="hidden lg:inline">Por </span>User
                   </span>
                 </button>
               </div>
@@ -349,25 +350,25 @@ export default function DashboardPage() {
               {/* Actions */}
               <button
                 onClick={handleRefresh}
-                className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                className={`p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors ${
                   isRefreshing ? 'animate-spin' : ''
                 }`}
                 disabled={isRefreshing}
                 title="Atualizar dados"
               >
-                <RefreshCw className="w-5 h-5 text-gray-600" />
+                <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
 
               {/* Notifications Bell */}
               <div className="relative">
                 <button
                   onClick={() => setShowNotificationPanel(!showNotificationPanel)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
                   title={`${totalUnreadMessages} notificação${totalUnreadMessages !== 1 ? 'ões' : ''} não lida${totalUnreadMessages !== 1 ? 's' : ''}`}
                 >
-                  <Bell className="w-5 h-5 text-gray-600" />
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                   {totalUnreadMessages > 0 && (
-                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] sm:min-w-[18px] h-[16px] sm:h-[18px] px-1 text-[9px] sm:text-[10px] font-bold bg-red-500 text-white rounded-full">
                       {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
                     </span>
                   )}
@@ -389,27 +390,27 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Settings - Only for admins */}
+              {/* Settings - Only for admins - Hidden on smallest mobile */}
               {hasPermission(Permission.MANAGE_USERS) && (
                 <button
                   onClick={() => router.push("/configuracoes")}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="hidden sm:block p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Configurações"
                 >
-                  <Settings className="w-5 h-5 text-gray-600" />
+                  <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </button>
               )}
 
-              {/* User Switcher (Shows current user and role) */}
-              <div className="ml-3 pl-3 border-l border-gray-200">
+              {/* User Switcher (Shows current user and role) - Compact on mobile */}
+              <div className="ml-1 sm:ml-3 pl-1 sm:pl-3 border-l border-gray-200">
                 <ProfileSwitcher />
               </div>
             </div>
           </div>
 
           {/* Search and Filters */}
-          <div className="mt-4">
-            <div className="flex flex-col lg:flex-row gap-3">
+          <div className="mt-3 sm:mt-4">
+            <div className="flex flex-col gap-2 sm:gap-3">
               {/* Search */}
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -423,21 +424,22 @@ export default function DashboardPage() {
               </div>
 
               {/* Filter Buttons */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {/* Pending Communications Filter */}
                 <button
                   onClick={() => setShowPendingCommunications(!showPendingCommunications)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
+                  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors border ${
                     showPendingCommunications
                       ? 'bg-blue-50 border-blue-300 text-blue-700'
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                   title="Mostrar apenas processos com comunicações pendentes"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  Comunicações Pendentes
+                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Comunicações Pendentes</span>
+                  <span className="sm:hidden">Comunic.</span>
                   {showPendingCommunications && servicesWithNotifications.length > 0 && (
-                    <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                    <span className="ml-1 px-1.5 sm:px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                       {servicesWithNotifications.length}
                     </span>
                   )}
@@ -446,11 +448,11 @@ export default function DashboardPage() {
                 <div className="relative">
                   <button
                     onClick={() => setShowStatusFilter(!showStatusFilter)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
-                    📊 Status
+                    <span className="hidden sm:inline">📊</span> Status
                     {selectedStatuses.length > 0 && (
-                      <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                      <span className="ml-1 px-1.5 sm:px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                         {selectedStatuses.length}
                       </span>
                     )}
@@ -492,9 +494,9 @@ export default function DashboardPage() {
                 <div className="relative">
                   <button
                     onClick={() => setShowDateFilter(!showDateFilter)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
-                    📅 Datas
+                    <span className="hidden sm:inline">📅</span> Datas
                     {(dateFrom || dateTo) && (
                       <span className="ml-1 w-2 h-2 bg-blue-500 rounded-full"></span>
                     )}
@@ -714,7 +716,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <Card>
+            {/* Desktop Table View - Hidden on mobile */}
+            <Card className="hidden lg:block">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="border-b bg-gray-50">
@@ -892,6 +895,62 @@ export default function DashboardPage() {
                 </div>
               )}
             </Card>
+
+            {/* Mobile Cards View - Hidden on desktop */}
+            <div className="lg:hidden space-y-3">
+              {paginatedServices.map((service) => (
+                <MobileServiceCard
+                  key={service.id}
+                  service={service}
+                  onViewDetails={() => handleServiceClick(service as ServiceWithRelations)}
+                  hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
+                  unreadCount={getUnreadMessagesCount(service)}
+                />
+              ))}
+
+              {filteredAndSortedServices.length === 0 && (
+                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                  <p className="text-gray-500 text-lg">
+                    Nenhum processo encontrado
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Tente ajustar os filtros ou a busca
+                  </p>
+                </div>
+              )}
+
+              {/* Pagination Mobile */}
+              {filteredAndSortedServices.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <div className="text-sm text-gray-600 text-center mb-3">
+                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredAndSortedServices.length)} de {filteredAndSortedServices.length}
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </button>
+
+                    <span className="px-3 py-2 text-sm font-medium text-gray-700">
+                      {currentPage} / {totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      Próxima
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <>

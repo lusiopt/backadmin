@@ -252,7 +252,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                   {isEditingClient ? (
                     <>
                       <div>
@@ -327,7 +327,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="font-semibold mb-3">Dados do Processo</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><span className="font-medium">Criado:</span> {formatDate(service.createdAt)}</div>
                     <div><span className="font-medium">Atualizado:</span> {formatDate(service.updatedAt)}</div>
                     <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? "✅" : "❌"}</div>
