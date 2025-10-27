@@ -143,8 +143,9 @@ src/
 │
 ├── lib/                  # Utilitários
 │   ├── api.ts           # Cliente API
-│   ├── types.ts         # TypeScript types
-│   └── mockData.ts      # Dados mock (15 pedidos)
+│   ├── types.ts         # TypeScript types (100% schema Prisma)
+│   ├── mockData.ts      # Dados mock (integração)
+│   └── mockDataGenerated.ts  # 100 pedidos gerados (13.963 linhas)
 │
 ├── hooks/               # Custom hooks
 │   └── useApi.ts       # Hooks para API
@@ -176,13 +177,92 @@ cp .env.local.example .env.local
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
+## 🚢 Deploy
+
+### Ambiente de Desenvolvimento (DEV)
+
+**Servidor:** 72.61.165.88:3004
+**URL:** http://72.61.165.88:3004/backadmin
+**Branch:** `dev`
+
+#### Processo de Deploy
+
+```bash
+# Deploy completo (via SSH)
+ssh root@72.61.165.88 "
+  cd /var/www/dev/backadmin && \
+  git pull origin dev && \
+  npm run build && \
+  cp -r .next/static .next/standalone/.next/ && \
+  cp -r public .next/standalone/ && \
+  cp -r src .next/standalone/ && \
+  fuser -k 3004/tcp 2>&1 && \
+  sleep 2 && \
+  cd .next/standalone && \
+  PORT=3004 nohup node server.js > /var/log/backadmin-dev.log 2>&1 & \
+  sleep 3 && \
+  curl -s -o /dev/null -w '%{http_code}' http://localhost:3004/backadmin && \
+  echo ' ✓ Deploy concluído'
+"
+```
+
+#### Comandos Úteis
+
+```bash
+# Ver logs do servidor
+ssh root@72.61.165.88 "tail -f /var/log/backadmin-dev.log"
+
+# Reiniciar servidor sem rebuild
+ssh root@72.61.165.88 "fuser -k 3004/tcp 2>&1 && cd /var/www/dev/backadmin/.next/standalone && PORT=3004 nohup node server.js > /var/log/backadmin-dev.log 2>&1 &"
+
+# Verificar status
+ssh root@72.61.165.88 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3004/backadmin"
+```
+
+#### Estrutura no Servidor
+
+```
+/var/www/dev/backadmin/
+├── .next/
+│   └── standalone/        # Build em modo standalone
+│       ├── .next/
+│       ├── public/
+│       ├── src/          # Código fonte (runtime)
+│       └── server.js     # Servidor Node.js
+├── .git/                 # Repositório Git
+└── package.json
+```
+
+#### Troubleshooting
+
+**Erro: Port already in use**
+```bash
+ssh root@72.61.165.88 "fuser -k 3004/tcp"
+```
+
+**Erro: Build failed**
+```bash
+# Ver logs de build
+ssh root@72.61.165.88 "cd /var/www/dev/backadmin && npm run build 2>&1 | tail -50"
+```
+
+**Servidor não responde**
+```bash
+# Verificar processo
+ssh root@72.61.165.88 "ps aux | grep 'node server.js'"
+
+# Ver logs
+ssh root@72.61.165.88 "tail -100 /var/log/backadmin-dev.log"
+```
+
 ## 🔌 Integração com Backend
 
 ### Estado Atual
-- ✅ Usando dados **mock** (15 pedidos fictícios)
+- ✅ Usando dados **mock** (100 pedidos com 100% do schema Prisma)
 - ✅ API service **configurado** e pronto
 - ✅ React Query **implementado** para cache
 - ✅ Hooks customizados **criados**
+- ✅ TypeScript strict mode com type safety completo
 
 ### Para Conectar com API Real
 
@@ -487,7 +567,7 @@ window.__REACT_QUERY_STATE__
 
 **Desenvolvedor:** Euclides Gomes + Claude Code
 **Última Atualização:** 27 Outubro 2025
-**Versão:** v0.6.0
+**Versão:** v0.7.0
 
 ---
 
@@ -495,7 +575,23 @@ window.__REACT_QUERY_STATE__
 
 ## 🏷️ Versões
 
-- **v0.6.0** (atual - 27/10/2025) ✨ **VERSÃO ESTÁVEL**
+- **v0.7.0** (atual - 27/10/2025) 🚀 **MOCK DATA UPGRADE + DEPLOY**
+  - 📊 **100 Pedidos Mockados Completos** (vs 5 anteriores)
+  - ✅ **Schema 100% Prisma Real** - 0 campos inventados
+  - 📝 **13.963 linhas de dados gerados** automaticamente
+  - 🔧 **7 Correções de TypeScript** - Optional chaining em todos componentes
+    - types.ts: Relacionamentos opcionais (Service.user, person, address, etc.)
+    - page.tsx: Search, sort, group, display com safe navigation
+    - pedidos/[id]/page.tsx: Header do detalhe
+    - service-modal.tsx: Dialog header
+    - MobileServiceCard.tsx: Card mobile
+    - RecentActivity.tsx: Timeline
+  - 🚢 **Deploy para DEV** - http://72.61.165.88:3004/backadmin
+  - 📚 **Documentação completa** - MOCK_DATA_UPGRADE.md, SCHEMA_COMPARISON.md
+  - 🎯 **Type Safety 100%** - Compilação sem erros TypeScript
+  - Ver: MOCK_DATA_UPGRADE.md para detalhes completos
+
+- **v0.6.0** (27/10/2025) ✨ **VERSÃO ESTÁVEL**
   - 📱 **Mobile Responsiveness Completa**
   - Brand header com logo Lusio Cidadania
   - Settings visível em mobile
