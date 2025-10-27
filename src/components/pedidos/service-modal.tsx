@@ -316,22 +316,86 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                   ) : (
                     <>
                       <div><span className="font-medium">Nome:</span> {service.person?.firstName} {service.person?.lastName}</div>
+                      {service.person?.alternativeNames && (
+                        <div><span className="font-medium">Nome Alternativo:</span> {service.person.alternativeNames}</div>
+                      )}
+                      <div><span className="font-medium">Email:</span> {service.person?.email || "-"}</div>
+                      <div><span className="font-medium">NIF:</span> {service.person?.nif || "-"}</div>
                       <div><span className="font-medium">Profissão:</span> {service.person?.profession || "-"}</div>
                       <div><span className="font-medium">Nacionalidade:</span> {service.person?.nationality || "-"}</div>
+                      {service.person?.residenceCountries && (
+                        <div><span className="font-medium">Países Residência:</span> {service.person.residenceCountries}</div>
+                      )}
                       <div><span className="font-medium">Nascimento:</span> {formatDate(service.person?.birthDate)}</div>
-                      <div><span className="font-medium">Pai:</span> {service.person?.fatherFullName || "-"}</div>
-                      <div><span className="font-medium">Mãe:</span> {service.person?.motherFullName || "-"}</div>
+                      {service.person?.alternativeBirthDate && (
+                        <div><span className="font-medium">Data Alt:</span> {formatDate(service.person.alternativeBirthDate)}</div>
+                      )}
+                      <div className="col-span-2 border-t pt-2 mt-2">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Dados dos Pais</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                          <div><span className="font-medium">Pai:</span> {service.person?.fatherFullName || "-"}</div>
+                          {service.person?.fatherAlternativeNames && (
+                            <div><span className="font-medium">Pai (Alt):</span> {service.person.fatherAlternativeNames}</div>
+                          )}
+                          {service.person?.fatherBirthPlace && (
+                            <div><span className="font-medium">Nasc. Pai:</span> {service.person.fatherBirthPlace}</div>
+                          )}
+                          <div><span className="font-medium">Mãe:</span> {service.person?.motherFullName || "-"}</div>
+                          {service.person?.motherAlternativeNames && (
+                            <div><span className="font-medium">Mãe (Alt):</span> {service.person.motherAlternativeNames}</div>
+                          )}
+                          {service.person?.motherBirthPlace && (
+                            <div><span className="font-medium">Nasc. Mãe:</span> {service.person.motherBirthPlace}</div>
+                          )}
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
+
+                {service.address && (
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="font-semibold mb-3">Endereço em Portugal</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div><span className="font-medium">Rua:</span> {service.address.street || "-"}</div>
+                      {service.address.complement && (
+                        <div><span className="font-medium">Complemento:</span> {service.address.complement}</div>
+                      )}
+                      <div><span className="font-medium">Cód. Postal:</span> {service.address.postalCode || "-"}</div>
+                      <div><span className="font-medium">Localidade:</span> {service.address.locality || "-"}</div>
+                      {service.address.province && (
+                        <div><span className="font-medium">Província:</span> {service.address.province}</div>
+                      )}
+                      <div><span className="font-medium">País:</span> {service.address.country || "-"}</div>
+                      {service.address.phone && (
+                        <div><span className="font-medium">Telefone:</span> {service.address.areaCode ? `+${service.address.areaCode} ` : ""}{service.address.phone}</div>
+                      )}
+                      {service.address.email && (
+                        <div><span className="font-medium">Email:</span> {service.address.email}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="font-semibold mb-3">Dados do Processo</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><span className="font-medium">Criado:</span> {formatDate(service.createdAt)}</div>
                     <div><span className="font-medium">Atualizado:</span> {formatDate(service.updatedAt)}</div>
+                    {service.assignedAt && (
+                      <div><span className="font-medium">Atribuído:</span> {formatDate(service.assignedAt)}</div>
+                    )}
+                    {service.sendSolicitationDate && (
+                      <div><span className="font-medium">Solicitação:</span> {formatDate(service.sendSolicitationDate)}</div>
+                    )}
                     <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? "✅" : "❌"}</div>
                     <div><span className="font-medium">Governo:</span> {service.isPaidGovernment ? "✅" : "❌"}</div>
+                    {service.paymentReferenceId && (
+                      <div><span className="font-medium">Ref. Pagamento:</span> {service.paymentReferenceId}</div>
+                    )}
+                    {service.documentPromotion !== null && service.documentPromotion !== undefined && (
+                      <div><span className="font-medium">Promoção Docs:</span> {service.documentPromotion ? "✅" : "❌"}</div>
+                    )}
                     <div><span className="font-medium">Entidade:</span> {service.entity || "-"}</div>
                     <div><span className="font-medium">Referência:</span> {service.reference || "-"}</div>
                     <div><span className="font-medium">Nº Processo:</span> {service.processNumber || "-"}</div>
@@ -390,33 +454,68 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 {service.documents && service.documents.length > 0 ? (
                   <div className="space-y-2">
                     {service.documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100">
-                        <div className="flex-1">
-                          <span className="text-sm font-medium">{doc.name}</span>
-                          {doc.uploadedAt && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Enviado em {formatDate(doc.uploadedAt)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          {hasPermission(Permission.VIEW_DOCUMENTS) && (
-                            <button className="text-xs text-primary hover:underline">Ver</button>
-                          )}
-                          {hasPermission(Permission.DELETE_DOCUMENTS) && (
-                            <button
-                              onClick={() => {
-                                if (confirm(`Remover ${doc.name}?`)) {
-                                  updateService(service.id, {
-                                    documents: service.documents?.filter(d => d.id !== doc.id)
-                                  });
-                                }
-                              }}
-                              className="text-xs text-red-600 hover:underline"
-                            >
-                              Remover
-                            </button>
-                          )}
+                      <div key={doc.id} className="p-3 bg-gray-50 rounded hover:bg-gray-100">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-2">
+                            {/* Title and Approval Status */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">
+                                {doc.title || doc.name}
+                              </span>
+                              {doc.approved !== null && doc.approved !== undefined && (
+                                <span className={`text-xs px-2 py-0.5 rounded ${doc.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                  {doc.approved ? '✅ Aprovado' : '⏳ Pendente'}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* File name (if different from title) */}
+                            {doc.title && doc.title !== doc.name && (
+                              <p className="text-xs text-gray-500">
+                                Arquivo: {doc.name}
+                              </p>
+                            )}
+
+                            {/* Document metadata grid */}
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                              {doc.number && (
+                                <div><span className="font-medium">Número:</span> {doc.number}</div>
+                              )}
+                              {doc.issuedBy && (
+                                <div><span className="font-medium">Emissor:</span> {doc.issuedBy}</div>
+                              )}
+                              {doc.issuedAt && (
+                                <div><span className="font-medium">Emissão:</span> {formatDate(doc.issuedAt)}</div>
+                              )}
+                              {doc.expiresAt && (
+                                <div><span className="font-medium">Validade:</span> {formatDate(doc.expiresAt)}</div>
+                              )}
+                              {doc.uploadedAt && (
+                                <div><span className="font-medium">Upload:</span> {formatDate(doc.uploadedAt)}</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2 flex-shrink-0">
+                            {hasPermission(Permission.VIEW_DOCUMENTS) && (
+                              <button className="text-xs text-primary hover:underline">Ver</button>
+                            )}
+                            {hasPermission(Permission.DELETE_DOCUMENTS) && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Remover ${doc.name}?`)) {
+                                    updateService(service.id, {
+                                      documents: service.documents?.filter(d => d.id !== doc.id)
+                                    });
+                                  }
+                                }}
+                                className="text-xs text-red-600 hover:underline"
+                              >
+                                Remover
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

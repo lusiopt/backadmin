@@ -1,5 +1,6 @@
 // Types baseados no schema Prisma do Lusio Cidadania
-// Gerado em: 2025-10-23
+// Corrigido e validado em: 2025-10-27
+// Reflete 100% do schema Prisma REAL (sem campos inventados)
 
 // =====================================================
 // ENUMS
@@ -34,6 +35,9 @@ export enum DocumentType {
   CRIMINAL_RECORD = "criminal_record",
   RESIDENCE_TITLE = "residence_title",
   MARRIAGE_CERTIFICATE = "marriage_certificate",
+  DIVORCE_CERTIFICATE = "divorce_certificate",
+  CHILD_BIRTH_CERTIFICATE = "child_birth_certificate",
+  CIVIL_CERTIFICATE = "civil_certificate",
   OTHER = "other",
 }
 
@@ -49,9 +53,17 @@ export interface User {
   areaCode?: string | null;
   phone?: string | null;
   email: string;
+  password?: string; // Hash da senha
+  address?: string | null; // Endereço completo do usuário
+  city?: string | null; // Cidade do usuário
+  state?: string | null; // Estado/Região do usuário
+  country?: string | null; // País do usuário
+  postalCode?: string | null; // Código postal
+  role?: string | null; // Papel no sistema
   active: boolean;
   createdAt: Date | string;
   updatedAt?: Date | string | null;
+  deletedAt?: Date | string | null; // Soft delete
 }
 
 export interface Person {
@@ -69,25 +81,33 @@ export interface Person {
   civilState?: string | null;
   nationality?: string | null;
   birthDate?: Date | string | null;
+  alternativeBirthDate?: string | null; // Data alternativa de nascimento
   cityPlace?: string | null;
   statePlace?: string | null;
   countryPlace?: string | null;
   gender?: string | null;
   residenceCountries?: string | null;
+  nif?: string | null; // Número de Identificação Fiscal (Portugal)
+  email?: string | null; // Email da pessoa
+  otp?: string | null; // OTP para autenticação
+
   userId: string;
   createdAt: Date | string;
   updatedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
 }
 
 export interface Address {
   id: string;
   street?: string | null;
-  number?: string | null;
-  complement?: string | null;
-  city?: string | null;
-  state?: string | null;
-  country?: string | null;
   postalCode?: string | null;
+  locality?: string | null; // Localidade/Cidade
+  areaCode?: string | null; // Código de área
+  phone?: string | null; // Telefone
+  email?: string | null; // Email de contato
+  complement?: string | null;
+  province?: string | null; // Província/Distrito (Portugal)
+  country?: string | null;
   serviceId: string;
   createdAt: Date | string;
   updatedAt?: Date | string | null;
@@ -97,19 +117,29 @@ export interface Document {
   id: string;
   name: string;
   url: string;
+  title?: string | null; // Título do documento
+  number?: string | null; // Número do documento (RG, CPF, Passaporte, etc)
   type?: DocumentType | string;
   size?: number;
+  issuedAt?: Date | string | null; // Data de emissão
+  expiresAt?: Date | string | null; // Data de validade
+  issuedBy?: string | null; // Órgão emissor
+  approved?: boolean | null; // Status de aprovação pela advogada
   uploadedAt: Date | string;
   serviceId: string;
+  updatedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
 }
 
 export interface DocumentAttorney {
   id: string;
   name: string;
   url: string;
-  type?: string;
+  size?: number;
   uploadedAt: Date | string;
   serviceId: string;
+  createdAt: Date | string;
+  updatedAt?: Date | string | null;
 }
 
 export interface Service {
@@ -125,6 +155,8 @@ export interface Service {
   isPaidGovernment: boolean;
   paidGovernmentAt?: Date | string | null;
   paymentReferenceId?: string | null;
+
+  // Documentos obrigatórios
   hasResidenceTitle?: boolean | null;
   hasBirthCertificate?: boolean | null;
   hasCriminalRecord?: boolean | null;
@@ -135,8 +167,21 @@ export interface Service {
   almostJustification?: string | null;
   sendSolicitationDate?: Date | string | null;
   submissionDate?: Date | string | null;
+  submittedAt?: Date | string | null; // Data de envio do pedido
+  conclusionDate?: Date | string | null; // Data de conclusão
+  appointmentDate?: Date | string | null; // Data de agendamento
+
+  // Relações
+  viabilityId?: string | null; // ID da análise de viabilidade
+
+  // Outros
+  slug?: string | null; // Slug único para URL amigável
+  otp?: string | null; // OTP para autenticação do processo
+  otpExpiration?: Date | string | null; // Expiração do OTP
+
   createdAt: Date | string;
   updatedAt?: Date | string | null;
+  deletedAt?: Date | string | null; // Soft delete
   userId: string;
   personId?: string | null;
 
@@ -146,7 +191,48 @@ export interface Service {
   address?: Address | null;
   documents?: Document[];
   documentsAttorney?: DocumentAttorney[];
-  messages?: Message[]; // Histórico de mensagens/comunicações
+  messages?: Message[];
+  problems?: Problem[]; // Problemas do processo
+  viability?: Viability | null; // Análise de viabilidade
+}
+
+// =====================================================
+// NOVOS MODELS: PROBLEM E VIABILITY
+// =====================================================
+
+export interface Problem {
+  id: string;
+  resume: string; // Resumo do problema
+  details: string; // Detalhes do problema (Text)
+  serviceId: string;
+  service?: Service;
+  createdAt: Date | string;
+  updatedAt?: Date | string | null;
+}
+
+export interface Viability {
+  id: string;
+  email: string;
+  portugueseMaternalLanguage?: boolean | null; // Português é língua materna?
+  dateFiveYears?: Date | string | null; // Data de 5 anos
+  moreThanEithteen?: boolean | null; // Maior de 18 anos?
+  emancipated?: boolean | null; // Emancipado?
+  lived5Years?: boolean | null; // Viveu 5 anos em território português?
+  approvedAuthorization?: boolean | null; // Autorização aprovada?
+  threeYearsPrison?: boolean | null; // Condenação superior a 3 anos de prisão?
+  terrorist?: boolean | null; // Envolvimento em atividades terroristas?
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  areaCode: string;
+  phone: string;
+  dateAuthorizationRequest?: Date | string | null; // Data do pedido de autorização
+  status: string; // Status da análise
+  descriptionPrison?: string | null; // Descrição da condenação prisional (Text)
+  descriptionAuthorization?: string | null; // Descrição da autorização (Text)
+  descriptionTerrorist?: string | null; // Descrição de atividades terroristas (Text)
+  createdAt: Date | string;
+  updatedAt?: Date | string | null;
 }
 
 // =====================================================
@@ -159,6 +245,8 @@ export type ServiceWithRelations = Service & {
   address?: Address;
   documents: Document[];
   documentsAttorney: DocumentAttorney[];
+  problems?: Problem[];
+  viability?: Viability | null;
 };
 
 export interface StatusHistory {
