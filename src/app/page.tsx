@@ -9,6 +9,7 @@ import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { filterServicesByPhasePermissions } from "@/lib/permissions";
 import { StatsCards } from "@/components/stats/StatsCards";
 import { ProcessChart } from "@/components/charts/ProcessChart";
 import { RecentActivity } from "@/components/tables/RecentActivity";
@@ -86,15 +87,20 @@ export default function DashboardPage() {
       : <ArrowDown className="w-4 h-4 text-blue-600" />;
   };
 
-  // Get unique statuses
+  // Filter services by phase permissions FIRST
+  const accessibleServices = useMemo(() => {
+    return filterServicesByPhasePermissions(services, hasPermission);
+  }, [services, hasPermission]);
+
+  // Get unique statuses from accessible services only
   const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(services.map((s) => s.status).filter(Boolean));
+    const statuses = new Set(accessibleServices.map((s) => s.status).filter(Boolean));
     return Array.from(statuses);
-  }, [services]);
+  }, [accessibleServices]);
 
   // Filtered and sorted services
   const filteredAndSortedServices = useMemo(() => {
-    let filtered = services.filter((service) => {
+    let filtered = accessibleServices.filter((service) => {
       // Search filter
       if (search) {
         const searchLower = search.toLowerCase();
@@ -164,7 +170,7 @@ export default function DashboardPage() {
     }
 
     return filtered;
-  }, [services, search, selectedStatuses, dateFrom, dateTo, sortColumn, sortDirection]);
+  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, sortColumn, sortDirection]);
 
   // Paginated services for list view
   const paginatedServices = useMemo(() => {
@@ -195,11 +201,11 @@ export default function DashboardPage() {
     }));
   }, [filteredAndSortedServices]);
 
-  // Quick actions
+  // Quick actions (using accessible services only)
   const quickActions = [
     {
       label: "Processos Pendentes",
-      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      count: accessibleServices.filter(s => s.status === "Passo 7 Esperando").length,
       icon: <Bell className="w-5 h-5" />,
       color: "bg-yellow-100 text-yellow-700",
       action: () => {
@@ -209,7 +215,7 @@ export default function DashboardPage() {
     },
     {
       label: "Aprovar Processos",
-      count: services.filter(s => s.status === "Passo 7 Esperando").length,
+      count: accessibleServices.filter(s => s.status === "Passo 7 Esperando").length,
       icon: <ChevronRight className="w-5 h-5" />,
       color: "bg-green-100 text-green-700",
       action: () => {
@@ -219,7 +225,7 @@ export default function DashboardPage() {
     },
     {
       label: "Documentos Faltantes",
-      count: services.filter(s => s.status === "Passo 7 Recusado").length,
+      count: accessibleServices.filter(s => s.status === "Passo 7 Recusado").length,
       icon: <Calendar className="w-5 h-5" />,
       color: "bg-red-100 text-red-700",
       action: () => {

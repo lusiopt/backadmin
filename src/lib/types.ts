@@ -236,6 +236,22 @@ export enum Permission {
   ASSIGN_SERVICES = "assign_services", // Atribuir processos a outros usuários
   VIEW_STATISTICS = "view_statistics", // Ver estatísticas e dashboards
   EXPORT_DATA = "export_data", // Exportar dados
+
+  // Phase-specific permissions (Permissões por fase do processo)
+  ACCESS_STEP_1 = "access_step_1",
+  ACCESS_STEP_2 = "access_step_2",
+  ACCESS_STEP_3 = "access_step_3",
+  ACCESS_STEP_4 = "access_step_4",
+  ACCESS_STEP_5 = "access_step_5",
+  ACCESS_STEP_6 = "access_step_6",
+  ACCESS_STEP_7 = "access_step_7",
+  ACCESS_STEP_8 = "access_step_8",
+  ACCESS_CANCELLED = "access_cancelled",
+  ACCESS_SUBMITTED = "access_submitted",
+  ACCESS_UNDER_ANALYSIS = "access_under_analysis",
+  ACCESS_WAITING_RESPONSE = "access_waiting_response",
+  ACCESS_FOR_DECISION = "access_for_decision",
+  ACCESS_COMPLETED = "access_completed",
 }
 
 export interface RolePermissions {
@@ -262,6 +278,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ASSIGN_SERVICES,
     Permission.VIEW_STATISTICS,
     Permission.EXPORT_DATA,
+    // Acesso a todas as fases
+    Permission.ACCESS_STEP_1,
+    Permission.ACCESS_STEP_2,
+    Permission.ACCESS_STEP_3,
+    Permission.ACCESS_STEP_4,
+    Permission.ACCESS_STEP_5,
+    Permission.ACCESS_STEP_6,
+    Permission.ACCESS_STEP_7,
+    Permission.ACCESS_STEP_8,
+    Permission.ACCESS_CANCELLED,
+    Permission.ACCESS_SUBMITTED,
+    Permission.ACCESS_UNDER_ANALYSIS,
+    Permission.ACCESS_WAITING_RESPONSE,
+    Permission.ACCESS_FOR_DECISION,
+    Permission.ACCESS_COMPLETED,
   ],
   [UserRole.BACKOFFICE]: [
     // Operação completa, exceto gerenciar usuários
@@ -277,9 +308,24 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ASSIGN_SERVICES,
     Permission.VIEW_STATISTICS,
     Permission.EXPORT_DATA,
+    // Acesso a todas as fases
+    Permission.ACCESS_STEP_1,
+    Permission.ACCESS_STEP_2,
+    Permission.ACCESS_STEP_3,
+    Permission.ACCESS_STEP_4,
+    Permission.ACCESS_STEP_5,
+    Permission.ACCESS_STEP_6,
+    Permission.ACCESS_STEP_7,
+    Permission.ACCESS_STEP_8,
+    Permission.ACCESS_CANCELLED,
+    Permission.ACCESS_SUBMITTED,
+    Permission.ACCESS_UNDER_ANALYSIS,
+    Permission.ACCESS_WAITING_RESPONSE,
+    Permission.ACCESS_FOR_DECISION,
+    Permission.ACCESS_COMPLETED,
   ],
   [UserRole.ADVOGADA]: [
-    // Visualização + análise + mudança de status
+    // Visualização + análise + mudança de status (apenas a partir do Passo 7)
     Permission.VIEW_SERVICES,
     Permission.EDIT_SERVICE,
     Permission.CHANGE_STATUS,
@@ -287,12 +333,35 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.UPLOAD_DOCUMENTS,
     Permission.VIEW_ALL_SERVICES,
     Permission.VIEW_STATISTICS,
+    // Acesso apenas a partir do Passo 7
+    Permission.ACCESS_STEP_7,
+    Permission.ACCESS_STEP_8,
+    Permission.ACCESS_SUBMITTED,
+    Permission.ACCESS_UNDER_ANALYSIS,
+    Permission.ACCESS_WAITING_RESPONSE,
+    Permission.ACCESS_FOR_DECISION,
+    Permission.ACCESS_COMPLETED,
   ],
   [UserRole.VISUALIZADOR]: [
-    // Apenas leitura
+    // Apenas leitura de todas as fases
     Permission.VIEW_SERVICES,
     Permission.VIEW_DOCUMENTS,
     Permission.VIEW_STATISTICS,
+    // Visualização de todas as fases
+    Permission.ACCESS_STEP_1,
+    Permission.ACCESS_STEP_2,
+    Permission.ACCESS_STEP_3,
+    Permission.ACCESS_STEP_4,
+    Permission.ACCESS_STEP_5,
+    Permission.ACCESS_STEP_6,
+    Permission.ACCESS_STEP_7,
+    Permission.ACCESS_STEP_8,
+    Permission.ACCESS_CANCELLED,
+    Permission.ACCESS_SUBMITTED,
+    Permission.ACCESS_UNDER_ANALYSIS,
+    Permission.ACCESS_WAITING_RESPONSE,
+    Permission.ACCESS_FOR_DECISION,
+    Permission.ACCESS_COMPLETED,
   ],
 };
 

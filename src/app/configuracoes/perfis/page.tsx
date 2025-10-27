@@ -80,6 +80,77 @@ const PERMISSION_LABELS: Record<Permission, { label: string; description: string
     description: "Exportar relatórios e dados",
     category: "Especial"
   },
+  // Phase-specific permissions
+  [Permission.ACCESS_STEP_1]: {
+    label: "Passo 1",
+    description: "Acesso a processos no Passo 1",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_2]: {
+    label: "Passo 2",
+    description: "Acesso a processos no Passo 2",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_3]: {
+    label: "Passo 3",
+    description: "Acesso a processos no Passo 3",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_4]: {
+    label: "Passo 4",
+    description: "Acesso a processos no Passo 4",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_5]: {
+    label: "Passo 5",
+    description: "Acesso a processos no Passo 5",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_6]: {
+    label: "Passo 6",
+    description: "Acesso a processos no Passo 6",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_7]: {
+    label: "Passo 7",
+    description: "Acesso a processos no Passo 7",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_8]: {
+    label: "Passo 8",
+    description: "Acesso a processos no Passo 8",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_CANCELLED]: {
+    label: "Cancelado",
+    description: "Acesso a processos cancelados",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_SUBMITTED]: {
+    label: "Submetido",
+    description: "Acesso a processos submetidos",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_UNDER_ANALYSIS]: {
+    label: "Em Análise",
+    description: "Acesso a processos em análise",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_WAITING_RESPONSE]: {
+    label: "Aguardando Resposta",
+    description: "Acesso a processos aguardando resposta",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_FOR_DECISION]: {
+    label: "Para Decisão",
+    description: "Acesso a processos para decisão",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_COMPLETED]: {
+    label: "Concluído",
+    description: "Acesso a processos concluídos",
+    category: "Acesso por Fase"
+  },
 };
 
 const ROLE_LABELS: Record<UserRole, { label: string; description: string }> = {

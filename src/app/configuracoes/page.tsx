@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole, Permission, AuthUser } from "@/lib/types";
 import { mockSystemUsers } from "@/lib/mockData";
-import { Plus, Edit, Trash2, X, Eye, EyeOff, Users, Shield, Check } from "lucide-react";
+import { Plus, Edit, Trash2, X, Eye, EyeOff, Users, Shield, Check, ArrowLeft } from "lucide-react";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: "Admin",
@@ -91,6 +92,77 @@ const PERMISSION_LABELS: Record<Permission, { label: string; description: string
     description: "Exportar dados do sistema",
     category: "Especial"
   },
+  // Phase-specific permissions
+  [Permission.ACCESS_STEP_1]: {
+    label: "Passo 1",
+    description: "Acesso a processos no Passo 1",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_2]: {
+    label: "Passo 2",
+    description: "Acesso a processos no Passo 2",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_3]: {
+    label: "Passo 3",
+    description: "Acesso a processos no Passo 3",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_4]: {
+    label: "Passo 4",
+    description: "Acesso a processos no Passo 4",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_5]: {
+    label: "Passo 5",
+    description: "Acesso a processos no Passo 5",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_6]: {
+    label: "Passo 6",
+    description: "Acesso a processos no Passo 6",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_7]: {
+    label: "Passo 7",
+    description: "Acesso a processos no Passo 7 (todas variações)",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_STEP_8]: {
+    label: "Passo 8",
+    description: "Acesso a processos no Passo 8 (todas variações)",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_CANCELLED]: {
+    label: "Cancelado",
+    description: "Acesso a processos cancelados",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_SUBMITTED]: {
+    label: "Submetido",
+    description: "Acesso a processos submetidos",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_UNDER_ANALYSIS]: {
+    label: "Em Análise",
+    description: "Acesso a processos em análise",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_WAITING_RESPONSE]: {
+    label: "Aguarda Resposta",
+    description: "Acesso a processos aguardando resposta",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_FOR_DECISION]: {
+    label: "Para Decisão",
+    description: "Acesso a processos para decisão",
+    category: "Acesso por Fase"
+  },
+  [Permission.ACCESS_COMPLETED]: {
+    label: "Concluído",
+    description: "Acesso a processos concluídos",
+    category: "Acesso por Fase"
+  },
 };
 
 interface UserFormData {
@@ -102,6 +174,7 @@ interface UserFormData {
 }
 
 export default function ConfigPage() {
+  const router = useRouter();
   const { user, hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
 
@@ -118,6 +191,7 @@ export default function ConfigPage() {
   });
 
   // Role Permissions State
+  const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.ADMIN);
   const [configs, setConfigs] = useState<Record<UserRole, Permission[]>>({
     [UserRole.ADMIN]: Object.values(Permission),
     [UserRole.BACKOFFICE]: [],
@@ -287,12 +361,23 @@ export default function ConfigPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Configurações do Sistema
-          </h1>
-          <p className="text-gray-600">
-            Gerencie usuários e configure permissões para cada perfil.
-          </p>
+          <div className="flex items-start gap-4">
+            <button
+              onClick={() => router.push("/")}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors mt-1"
+              title="Voltar para a página inicial"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Configurações do Sistema
+              </h1>
+              <p className="text-gray-600">
+                Gerencie usuários e configure permissões para cada perfil.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -455,72 +540,95 @@ export default function ConfigPage() {
                   </div>
                 </div>
 
-                <div className="space-y-8">
-                  {Object.entries(ROLE_LABELS).map(([roleKey, roleLabel]) => {
-                    const role = roleKey as UserRole;
-                    return (
-                      <div key={role} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-center gap-3 mb-6">
-                          <span
-                            className={`px-4 py-2 rounded-lg text-sm font-bold border-2 ${ROLE_COLORS[role]}`}
-                          >
-                            {roleLabel}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {configs[role]?.length || 0} permissões ativas
-                          </span>
+                {/* Role Selector */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Selecione o perfil para editar permissões:
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.entries(ROLE_LABELS).map(([roleKey, roleLabel]) => {
+                      const role = roleKey as UserRole;
+                      const isSelected = selectedRole === role;
+                      return (
+                        <button
+                          key={role}
+                          onClick={() => setSelectedRole(role)}
+                          className={`px-4 py-3 rounded-lg border-2 font-semibold transition-all ${
+                            isSelected
+                              ? ROLE_COLORS[role] + " shadow-md"
+                              : "border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          <div className="text-sm">{roleLabel}</div>
+                          <div className="text-xs mt-1 opacity-75">
+                            {configs[role]?.length || 0} permissões
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Selected Role Permissions */}
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span
+                      className={`px-4 py-2 rounded-lg text-sm font-bold border-2 ${ROLE_COLORS[selectedRole]}`}
+                    >
+                      {ROLE_LABELS[selectedRole]}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {configs[selectedRole]?.length || 0} permissões ativas
+                    </span>
+                  </div>
+
+                  <div className="space-y-6">
+                    {categories.map((category) => {
+                      const categoryPermissions = Object.entries(PERMISSION_LABELS)
+                        .filter(([_, info]) => info.category === category)
+                        .map(([perm]) => perm as Permission);
+
+                      return (
+                        <div key={category}>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                            {category}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {categoryPermissions.map((permission) => {
+                              const info = PERMISSION_LABELS[permission];
+                              const isChecked = configs[selectedRole]?.includes(permission);
+
+                              return (
+                                <label
+                                  key={permission}
+                                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                    isChecked
+                                      ? "border-blue-300 bg-blue-50"
+                                      : "border-gray-200 hover:border-gray-300"
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => togglePermission(selectedRole, permission)}
+                                    className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900">
+                                      {info.label}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {info.description}
+                                    </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
                         </div>
-
-                        <div className="space-y-6">
-                          {categories.map((category) => {
-                            const categoryPermissions = Object.entries(PERMISSION_LABELS)
-                              .filter(([_, info]) => info.category === category)
-                              .map(([perm]) => perm as Permission);
-
-                            return (
-                              <div key={category}>
-                                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                                  {category}
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {categoryPermissions.map((permission) => {
-                                    const info = PERMISSION_LABELS[permission];
-                                    const isChecked = configs[role]?.includes(permission);
-
-                                    return (
-                                      <label
-                                        key={permission}
-                                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                                          isChecked
-                                            ? "border-blue-300 bg-blue-50"
-                                            : "border-gray-200 hover:border-gray-300"
-                                        }`}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={isChecked}
-                                          onChange={() => togglePermission(role, permission)}
-                                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <div className="flex-1">
-                                          <div className="font-medium text-sm text-gray-900">
-                                            {info.label}
-                                          </div>
-                                          <div className="text-xs text-gray-500 mt-1">
-                                            {info.description}
-                                          </div>
-                                        </div>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}

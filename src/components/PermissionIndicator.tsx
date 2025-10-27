@@ -32,6 +32,21 @@ const permissionLabels: Record<Permission, string> = {
   [Permission.ASSIGN_SERVICES]: "Atribuir",
   [Permission.VIEW_STATISTICS]: "Estatísticas",
   [Permission.EXPORT_DATA]: "Exportar",
+  // Phase-specific permissions
+  [Permission.ACCESS_STEP_1]: "Passo 1",
+  [Permission.ACCESS_STEP_2]: "Passo 2",
+  [Permission.ACCESS_STEP_3]: "Passo 3",
+  [Permission.ACCESS_STEP_4]: "Passo 4",
+  [Permission.ACCESS_STEP_5]: "Passo 5",
+  [Permission.ACCESS_STEP_6]: "Passo 6",
+  [Permission.ACCESS_STEP_7]: "Passo 7",
+  [Permission.ACCESS_STEP_8]: "Passo 8",
+  [Permission.ACCESS_CANCELLED]: "Cancelado",
+  [Permission.ACCESS_SUBMITTED]: "Submetido",
+  [Permission.ACCESS_UNDER_ANALYSIS]: "Em Análise",
+  [Permission.ACCESS_WAITING_RESPONSE]: "Aguardando Resposta",
+  [Permission.ACCESS_FOR_DECISION]: "Para Decisão",
+  [Permission.ACCESS_COMPLETED]: "Concluído",
 };
 
 export function PermissionIndicator() {
