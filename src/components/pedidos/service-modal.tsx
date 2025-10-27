@@ -216,7 +216,7 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
             <TabsList className="bg-gray-50">
               <TabsTrigger value="dados" icon="📋">Dados</TabsTrigger>
               <TabsTrigger value="documentos" icon="📄">Documentos</TabsTrigger>
-              <TabsTrigger value="timeline" icon="📅">Timeline</TabsTrigger>
+              <TabsTrigger value="timeline" icon="📅">Histórico</TabsTrigger>
               <TabsTrigger value="comunicacoes" icon="💬">
                 Comunicações
                 {service.messages && service.messages.some(m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id) && (
@@ -429,9 +429,159 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 )}
               </TabsContent>
 
-              {/* TAB: Timeline */}
+              {/* TAB: Histórico */}
               <TabsContent value="timeline">
-                <p className="text-sm text-gray-500 py-8 text-center">Timeline em desenvolvimento</p>
+                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                  {(() => {
+                    // Agregação de todos os eventos do processo
+                    const events: Array<{ date: Date; description: string; icon: string; color: string }> = [];
+
+                    // Criação do processo
+                    if (service.createdAt) {
+                      events.push({
+                        date: new Date(service.createdAt),
+                        description: "Processo criado",
+                        icon: "🆕",
+                        color: "blue"
+                      });
+                    }
+
+                    // Mudanças de status via mensagens
+                    if (service.messages) {
+                      service.messages.forEach(msg => {
+                        if (msg.metadata?.newStatus) {
+                          events.push({
+                            date: new Date(msg.createdAt),
+                            description: `Status alterado para: ${msg.metadata.newStatus}`,
+                            icon: "🔄",
+                            color: "purple"
+                          });
+                        }
+
+                        // Mensagens da advogada
+                        if (msg.type === MessageType.LAWYER_REQUEST) {
+                          events.push({
+                            date: new Date(msg.createdAt),
+                            description: `Solicitação da advogada: ${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}`,
+                            icon: "⚖️",
+                            color: "yellow"
+                          });
+                        }
+
+                        // Respostas do backoffice
+                        if (msg.type === MessageType.BACKOFFICE_RESPONSE) {
+                          events.push({
+                            date: new Date(msg.createdAt),
+                            description: `Resposta do backoffice: ${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}`,
+                            icon: "💬",
+                            color: "green"
+                          });
+                        }
+                      });
+                    }
+
+                    // Upload de documentos
+                    if (service.documents) {
+                      service.documents.forEach(doc => {
+                        events.push({
+                          date: new Date(doc.uploadedAt),
+                          description: `Documento enviado: ${doc.name}`,
+                          icon: "📄",
+                          color: "indigo"
+                        });
+                      });
+                    }
+
+                    // Documentos do advogado
+                    if (service.documentsAttorney) {
+                      service.documentsAttorney.forEach(doc => {
+                        events.push({
+                          date: new Date(doc.uploadedAt),
+                          description: `Documento da advogada: ${doc.name}`,
+                          icon: "📋",
+                          color: "violet"
+                        });
+                      });
+                    }
+
+                    // Pagamentos
+                    if (service.paidTaxAt) {
+                      events.push({
+                        date: new Date(service.paidTaxAt),
+                        description: "Taxa paga",
+                        icon: "💰",
+                        color: "green"
+                      });
+                    }
+
+                    if (service.paidGovernmentAt) {
+                      events.push({
+                        date: new Date(service.paidGovernmentAt),
+                        description: "Pagamento ao governo confirmado",
+                        icon: "🏛️",
+                        color: "green"
+                      });
+                    }
+
+                    // Submissão do processo
+                    if (service.submissionDate) {
+                      events.push({
+                        date: new Date(service.submissionDate),
+                        description: "Processo submetido",
+                        icon: "📤",
+                        color: "cyan"
+                      });
+                    }
+
+                    // Atribuição
+                    if (service.assignedAt) {
+                      events.push({
+                        date: new Date(service.assignedAt),
+                        description: "Processo atribuído",
+                        icon: "👤",
+                        color: "gray"
+                      });
+                    }
+
+                    // Última atualização
+                    if (service.updatedAt && service.updatedAt !== service.createdAt) {
+                      events.push({
+                        date: new Date(service.updatedAt),
+                        description: "Processo atualizado",
+                        icon: "✏️",
+                        color: "gray"
+                      });
+                    }
+
+                    // Ordenar por data (mais recente primeiro)
+                    events.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+                    // Renderizar lista de eventos
+                    if (events.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="text-sm">Nenhum evento registrado ainda</p>
+                        </div>
+                      );
+                    }
+
+                    return events.map((event, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-3 border-l-4 rounded hover:bg-gray-50 transition-colors"
+                        style={{ borderLeftColor: `var(--${event.color}-500)` }}
+                      >
+                        <span className="text-2xl flex-shrink-0">{event.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">{event.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatDate(event.date.toISOString())}
+                          </p>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               </TabsContent>
 
               {/* TAB: Comunicações */}
