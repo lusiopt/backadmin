@@ -495,13 +495,18 @@ window.__REACT_QUERY_STATE__
 
 ## 🏷️ Versões
 
-- **v0.6.0** (atual - 27/10/2025)
+- **v0.6.0** (atual - 27/10/2025) ✨ **VERSÃO ESTÁVEL**
   - 📱 **Mobile Responsiveness Completa**
   - Brand header com logo Lusio Cidadania
   - Settings visível em mobile
   - ProfileSwitcher compacto
   - Filtros centralizados em todos dispositivos
   - Fixes específicos para iOS Safari (inputs date)
+  - **Painel de notificações** corrigido para mobile
+    - Backdrop semi-transparente (clique fora para fechar)
+    - Posicionamento correto com `top-16` em mobile
+    - Mantém comportamento original no desktop
+    - Z-index hierarquia correta (backdrop: 40, painel: 50)
   - Testado em 5 dispositivos diferentes
   - Deploy em dev: https://dev.lusio.market:3004/backadmin
 
