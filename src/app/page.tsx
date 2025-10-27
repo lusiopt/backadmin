@@ -512,7 +512,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full left-6 right-6 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
+                    <div className="fixed sm:absolute top-20 sm:top-full left-8 right-8 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
                       <div className="flex items-center justify-between mb-3 sm:hidden">
                         <span className="text-sm font-medium text-gray-700">Filtrar por Data</span>
                         <button
