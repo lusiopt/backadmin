@@ -50,7 +50,7 @@ interface TabsListProps {
 
 export function TabsList({ children, className = "" }: TabsListProps) {
   return (
-    <div className={`flex items-center border-b ${className}`}>
+    <div className={`flex items-center border-b overflow-x-auto ${className}`}>
       {children}
     </div>
   );
@@ -70,13 +70,13 @@ export function TabsTrigger({ value, children, icon, className = "" }: TabsTrigg
   return (
     <button
       onClick={() => onValueChange(value)}
-      className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
         isSelected
           ? "border-primary text-primary bg-primary/5"
           : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
       } ${className}`}
     >
-      {icon && <span className="text-lg">{icon}</span>}
+      {icon && <span className="text-base sm:text-lg">{icon}</span>}
       {children}
     </button>
   );

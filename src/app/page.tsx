@@ -459,7 +459,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showStatusFilter && (
-                    <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50">
+                    <div className="absolute top-full mt-2 right-0 left-0 sm:left-auto sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 max-w-[calc(100vw-2rem)]">
                       <div className="space-y-2">
                         {uniqueStatuses.map((status) => (
                           <label key={status} className="flex items-center gap-2 cursor-pointer">
@@ -503,7 +503,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="absolute top-full mt-2 right-0 w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                    <div className="absolute top-full mt-2 right-0 left-0 sm:left-auto sm:w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-3 sm:p-4 z-50 max-w-[calc(100vw-2rem)]">
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
