@@ -155,8 +155,8 @@ export default function PedidoDetailsPage() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{service.user.fullName}</h1>
-            <p className="text-gray-600 mt-1">{service.user.email}</p>
+            <h1 className="text-3xl font-bold">{service.user?.fullName || 'N/A'}</h1>
+            <p className="text-gray-600 mt-1">{service.user?.email || 'N/A'}</p>
           </div>
           <StatusBadge status={service.status} className="text-base px-4 py-2" />
         </div>
