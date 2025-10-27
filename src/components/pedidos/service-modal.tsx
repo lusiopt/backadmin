@@ -199,8 +199,8 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
           <DialogHeader>
             <div className="flex items-start justify-between pr-8">
               <div>
-                <DialogTitle>{service.user.fullName}</DialogTitle>
-                <p className="text-sm text-gray-600 mt-1">{service.user.email}</p>
+                <DialogTitle>{service.user?.fullName || 'N/A'}</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">{service.user?.email || 'N/A'}</p>
               </div>
               <div className="flex gap-2 items-center">
                 <Badge variant="secondary" className="text-xs">
