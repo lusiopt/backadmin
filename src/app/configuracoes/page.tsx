@@ -338,6 +338,30 @@ export default function ConfigPage() {
     });
   };
 
+  const toggleAllCategoryPermissions = (role: UserRole, category: string, permissions: Permission[]) => {
+    setConfigs(prev => {
+      const rolePerms = prev[role] || [];
+      // Verificar se todas as permissões da categoria já estão selecionadas
+      const allSelected = permissions.every(p => rolePerms.includes(p));
+
+      let newPermissions: Permission[];
+      if (allSelected) {
+        // Remover todas as permissões da categoria
+        newPermissions = rolePerms.filter(p => !permissions.includes(p));
+      } else {
+        // Adicionar todas as permissões da categoria
+        const permissionsToAdd = permissions.filter(p => !rolePerms.includes(p));
+        newPermissions = [...rolePerms, ...permissionsToAdd];
+      }
+
+      setHasChanges(true);
+      return {
+        ...prev,
+        [role]: newPermissions
+      };
+    });
+  };
+
   const saveConfig = () => {
     localStorage.setItem("role_permissions_config", JSON.stringify(configs));
     setHasChanges(false);
@@ -588,11 +612,26 @@ export default function ConfigPage() {
                         .filter(([_, info]) => info.category === category)
                         .map(([perm]) => perm as Permission);
 
+                      const allSelected = categoryPermissions.every(p => configs[selectedRole]?.includes(p));
+                      const someSelected = categoryPermissions.some(p => configs[selectedRole]?.includes(p));
+
                       return (
                         <div key={category}>
-                          <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                            {category}
-                          </h4>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-semibold text-gray-700">
+                              {category}
+                            </h4>
+                            <button
+                              onClick={() => toggleAllCategoryPermissions(selectedRole, category, categoryPermissions)}
+                              className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
+                                allSelected
+                                  ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              }`}
+                            >
+                              {allSelected ? "Desmarcar Todos" : someSelected ? "Selecionar Todos" : "Selecionar Todos"}
+                            </button>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {categoryPermissions.map((permission) => {
                               const info = PERMISSION_LABELS[permission];
