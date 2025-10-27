@@ -5,7 +5,7 @@
 ## 📊 Status do Desenvolvimento
 
 ```
-Progresso: ████████░░ 85%
+Progresso: ██████████ 90%
 
 ✅ Dashboard com estatísticas
 ✅ Listagem de processos
@@ -14,6 +14,9 @@ Progresso: ████████░░ 85%
 ✅ Ações do advogado
 ✅ Upload de documentos
 ✅ Sistema de notificações (UI)
+✅ Sistema de permissões por role
+✅ Permissões por fase do processo
+✅ Página de configurações com tabs
 🔄 Integração com API real
 ⏳ Modo produção
 ```
@@ -49,7 +52,23 @@ Progresso: ████████░░ 85%
 - **Download individual**
 - **Exclusão com confirmação**
 
-### 5. Interface Moderna
+### 5. Sistema de Permissões e Roles
+- **4 perfis de usuário**: Admin, Backoffice, Advogada, Visualizador
+- **Permissões granulares** por funcionalidade
+- **Permissões por fase** do processo (Passo 1-8, status especiais)
+- **Configuração dinâmica** via interface
+- **Filtro automático** de processos por permissão de fase
+- **Indicador visual** de permissões ativas
+
+### 6. Página de Configurações
+- **Interface com tabs** (Usuários e Perfis)
+- **Gerenciamento de usuários** (criar, editar, deletar)
+- **Configuração de permissões** por perfil
+- **Botões "Selecionar Todos"** por categoria
+- **Persistência** em localStorage
+- **Preview de permissões** ativas
+
+### 7. Interface Moderna
 - **Design responsivo** mobile-first
 - **Animações suaves** com Framer Motion
 - **Cores e ícones intuitivos**
@@ -168,9 +187,37 @@ login({ email, password });
 | Rota | Descrição | Status |
 |------|-----------|--------|
 | `/` | Redireciona para dashboard | ✅ |
-| `/dashboard` | Dashboard unificado (toggle visão geral/lista) | ✅ |
+| `/login` | Tela de login com autenticação | ✅ |
 | `/pedidos/[id]` | Detalhes do pedido | ✅ |
-| `/login` | Tela de login | 🔄 |
+| `/configuracoes` | Configurações (tabs: Usuários e Perfis) | ✅ |
+
+## 🔐 Sistema de Permissões
+
+### Perfis de Usuário
+
+| Perfil | Descrição | Permissões |
+|--------|-----------|------------|
+| **Admin** | Acesso total ao sistema | Todas as permissões + gerenciar usuários |
+| **Backoffice** | Operação completa | Todas exceto gerenciar usuários |
+| **Advogada** | Análise e decisão | Visualização, análise, mudança de status (Passo 7+) |
+| **Visualizador** | Apenas leitura | Visualização de todas as fases |
+
+### Permissões por Fase
+
+O sistema implementa controle granular de acesso por fase do processo:
+
+- **Passos 1-8**: Permissões individuais para cada passo
+- **Status especiais**: Cancelado, Submetido, Em Análise, etc.
+- **Filtro automático**: Processos são filtrados automaticamente baseado nas permissões do usuário
+
+### Configuração de Permissões
+
+Administradores podem:
+- ✅ Criar/editar/deletar usuários
+- ✅ Configurar permissões por perfil
+- ✅ Selecionar/desmarcar permissões por categoria
+- ✅ Visualizar permissões ativas em tempo real
+- ✅ Resetar para configurações padrão
 
 ## 🎯 Próximos Passos
 
@@ -239,8 +286,19 @@ window.__REACT_QUERY_STATE__
 ## 📞 Suporte
 
 **Desenvolvedor:** Euclides Gomes + Claude Code
-**Última Atualização:** 24 Outubro 2025
+**Última Atualização:** 27 Outubro 2025
+**Versão:** v0.2.0-config-consolidation
 
 ---
 
-🎉 **Sistema 85% completo e pronto para testes com dados mock!**
+🎉 **Sistema 90% completo com sistema de permissões robusto!**
+
+## 🏷️ Versões
+
+- **v0.2.0-config-consolidation** (atual)
+  - Sistema de configurações consolidado com tabs
+  - Permissões por fase implementadas
+  - Botões "Selecionar Todos" por categoria
+
+- **v1.0.0-stable**
+  - Versão inicial estável do dashboard

@@ -146,6 +146,7 @@ export interface Service {
   address?: Address | null;
   documents?: Document[];
   documentsAttorney?: DocumentAttorney[];
+  messages?: Message[]; // Histórico de mensagens/comunicações
 }
 
 // =====================================================
@@ -378,4 +379,58 @@ export interface AuthContextType {
   hasPermission: (permission: Permission) => boolean;
   hasAnyPermission: (permissions: Permission[]) => boolean;
   hasAllPermissions: (permissions: Permission[]) => boolean;
+}
+
+// =====================================================
+// MESSAGING SYSTEM
+// =====================================================
+
+export enum MessageType {
+  SYSTEM = "system", // Mensagens automáticas do sistema
+  USER = "user", // Mensagens de usuários
+  LAWYER_REQUEST = "lawyer_request", // Solicitação da advogada
+  BACKOFFICE_RESPONSE = "backoffice_response", // Resposta do backoffice
+}
+
+export enum MessageStatus {
+  UNREAD = "unread",
+  READ = "read",
+}
+
+export interface Message {
+  id: string;
+  serviceId: string;
+  senderId: string; // ID do usuário que enviou
+  senderName: string; // Nome do usuário que enviou
+  senderRole: UserRole; // Role do remetente
+  type: MessageType;
+  content: string; // Conteúdo da mensagem
+  status: MessageStatus;
+  createdAt: Date | string;
+  readAt?: Date | string | null;
+  // Para mensagens de solicitação da advogada
+  requestType?: "document" | "clarification" | "other"; // Tipo de solicitação
+  documentType?: DocumentType | string; // Tipo de documento solicitado (se aplicável)
+  // Metadados
+  metadata?: {
+    actionType?: "approve" | "refuse" | "almost"; // Ação relacionada
+    previousStatus?: ServiceStatus | string; // Status anterior do processo
+    newStatus?: ServiceStatus | string; // Novo status do processo
+  };
+}
+
+export interface MessageThread {
+  serviceId: string;
+  messages: Message[];
+  unreadCount: number;
+  lastMessageAt: Date | string;
+}
+
+// Tipo para criação de nova mensagem
+export interface CreateMessageInput {
+  serviceId: string;
+  content: string;
+  type?: MessageType;
+  requestType?: "document" | "clarification" | "other";
+  documentType?: DocumentType | string;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ServiceWithRelations, ServiceStatus, Permission } from "@/lib/types";
+import { ServiceWithRelations, ServiceStatus, Permission, CreateMessageInput, Message, MessageType, MessageStatus } from "@/lib/types";
 import { useServices } from "@/contexts/ServicesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { MessageThread } from "@/components/MessageThread";
 
 interface ServiceModalProps {
   service: ServiceWithRelations;
@@ -73,14 +74,78 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
       alert("Explique o que falta");
       return;
     }
+
+    // Criar mensagem da advogada
+    const { user } = useAuth();
+    const newMessage: Message = {
+      id: `msg_${Date.now()}`,
+      serviceId: service.id,
+      senderId: user!.id,
+      senderName: user!.fullName,
+      senderRole: user!.role,
+      type: MessageType.LAWYER_REQUEST,
+      content: almostNote,
+      status: MessageStatus.UNREAD,
+      createdAt: new Date().toISOString(),
+      requestType: "other",
+      metadata: {
+        actionType: "almost",
+        previousStatus: service.status || "",
+        newStatus: ServiceStatus.STEP_7_ALMOST,
+      },
+    };
+
     updateService(service.id, {
       status: ServiceStatus.STEP_7_ALMOST,
-      almostJustification: almostNote
+      almostJustification: almostNote,
+      messages: [...(service.messages || []), newMessage]
     });
     setShowAlmostModal(false);
     setAlmostNote("");
-    alert("⚠️ Status alterado para Quase Lá");
+    alert("⚠️ Status alterado e mensagem enviada ao backoffice");
   };
+
+  const handleSendMessage = (input: CreateMessageInput) => {
+    const { user } = useAuth();
+
+    const newMessage: Message = {
+      id: `msg_${Date.now()}`,
+      serviceId: service.id,
+      senderId: user!.id,
+      senderName: user!.fullName,
+      senderRole: user!.role,
+      type: input.type || MessageType.USER,
+      content: input.content,
+      status: MessageStatus.UNREAD,
+      createdAt: new Date().toISOString(),
+      requestType: input.requestType,
+      documentType: input.documentType,
+    };
+
+    updateService(service.id, {
+      messages: [...(service.messages || []), newMessage]
+    });
+  };
+
+  // Marcar mensagens como lidas quando abrir a tab Comunicações
+  useEffect(() => {
+    if (activeTab === "comunicacoes" && service.messages) {
+      const { user } = useAuth();
+      const unreadMessages = service.messages.filter(
+        m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id
+      );
+
+      if (unreadMessages.length > 0) {
+        const updatedMessages = service.messages.map(m =>
+          m.status === MessageStatus.UNREAD && m.senderId !== user?.id
+            ? { ...m, status: MessageStatus.READ, readAt: new Date().toISOString() }
+            : m
+        );
+
+        updateService(service.id, { messages: updatedMessages });
+      }
+    }
+  }, [activeTab, service.id]);
 
   const handleAddIRN = () => {
     if (!entity || !reference) {
@@ -146,7 +211,14 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               <TabsTrigger value="dados" icon="📋">Dados</TabsTrigger>
               <TabsTrigger value="documentos" icon="📄">Documentos</TabsTrigger>
               <TabsTrigger value="timeline" icon="📅">Timeline</TabsTrigger>
-              <TabsTrigger value="notas" icon="💬">Notas</TabsTrigger>
+              <TabsTrigger value="comunicacoes" icon="💬">
+                Comunicações
+                {service.messages && service.messages.some(m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id) && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                    {service.messages.filter(m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id).length}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="acoes" icon="⚡">Ações</TabsTrigger>
             </TabsList>
 
@@ -356,9 +428,13 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                 <p className="text-sm text-gray-500 py-8 text-center">Timeline em desenvolvimento</p>
               </TabsContent>
 
-              {/* TAB: Notas */}
-              <TabsContent value="notas">
-                <p className="text-sm text-gray-500 py-8 text-center">Notas em desenvolvimento</p>
+              {/* TAB: Comunicações */}
+              <TabsContent value="comunicacoes">
+                <MessageThread
+                  serviceId={service.id}
+                  messages={service.messages || []}
+                  onSendMessage={handleSendMessage}
+                />
               </TabsContent>
 
               {/* TAB: Ações */}
