@@ -15,6 +15,7 @@ import { RecentActivity } from "@/components/tables/RecentActivity";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  Bell,
   Calendar,
   Filter,
   RefreshCw,
