@@ -130,8 +130,8 @@ export default function DashboardPage() {
       if (search) {
         const searchLower = search.toLowerCase();
         const matchesSearch =
-          service.user.fullName.toLowerCase().includes(searchLower) ||
-          service.user.email.toLowerCase().includes(searchLower) ||
+          service.user?.fullName?.toLowerCase().includes(searchLower) ||
+          service.user?.email?.toLowerCase().includes(searchLower) ||
           service.id.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
