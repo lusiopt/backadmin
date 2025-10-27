@@ -470,7 +470,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showStatusFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[100] max-h-[60vh] overflow-y-auto">
+                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200] max-h-[60vh] overflow-y-auto">
                       <div className="space-y-2">
                         {uniqueStatuses.map((status) => (
                           <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[100]">
+                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
