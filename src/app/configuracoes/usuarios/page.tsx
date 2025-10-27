@@ -22,7 +22,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
 
 interface UserFormData {
   id?: string;
-  name: string;
+  fullName: string;
   email: string;
   password: string;
   role: UserRole;
@@ -35,7 +35,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
     role: UserRole.VISUALIZADOR,
@@ -81,7 +81,7 @@ export default function UsersPage() {
       setEditingUser(user);
       setFormData({
         id: user.id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
         password: "",
         role: user.role,
@@ -89,7 +89,7 @@ export default function UsersPage() {
     } else {
       setEditingUser(null);
       setFormData({
-        name: "",
+        fullName: "",
         email: "",
         password: "",
         role: UserRole.VISUALIZADOR,
@@ -103,7 +103,7 @@ export default function UsersPage() {
     setIsModalOpen(false);
     setEditingUser(null);
     setFormData({
-      name: "",
+      fullName: "",
       email: "",
       password: "",
       role: UserRole.VISUALIZADOR,
@@ -119,7 +119,7 @@ export default function UsersPage() {
         u.id === editingUser.id
           ? {
               ...u,
-              name: formData.name,
+              fullName: formData.fullName,
               email: formData.email,
               role: formData.role,
               // Only update password if provided
@@ -132,10 +132,12 @@ export default function UsersPage() {
       // Create new user
       const newUser: AuthUser = {
         id: `user_${Date.now()}`,
-        name: formData.name,
+        fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        active: true,
+        createdAt: new Date().toISOString(),
       };
       saveUsers([...users, newUser]);
     }
@@ -206,9 +208,9 @@ export default function UsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
-                          {u.name.charAt(0).toUpperCase()}
+                          {u.fullName.charAt(0).toUpperCase()}
                         </div>
-                        <div className="font-medium text-gray-900">{u.name}</div>
+                        <div className="font-medium text-gray-900">{u.fullName}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-600">
@@ -280,8 +282,8 @@ export default function UsersPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
