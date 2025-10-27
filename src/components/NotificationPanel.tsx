@@ -77,7 +77,7 @@ export function NotificationPanel({
   };
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col">
+    <div className="fixed md:absolute top-full left-4 right-4 md:left-auto md:right-0 mt-2 w-auto md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[70vh] md:max-h-[600px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
