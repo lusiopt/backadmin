@@ -185,8 +185,8 @@ export interface Service {
   userId: string;
   personId?: string | null;
 
-  // Relacionamentos
-  user: User;
+  // Relacionamentos (opcionais - só existem quando populados)
+  user?: User;
   person?: Person | null;
   address?: Address | null;
   documents?: Document[];
