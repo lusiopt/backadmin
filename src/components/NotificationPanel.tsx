@@ -77,8 +77,16 @@ export function NotificationPanel({
   };
 
   return (
-    <div className="fixed md:absolute top-full left-4 right-4 md:left-auto md:right-0 mt-2 w-auto md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[70vh] md:max-h-[600px] flex flex-col">
-      {/* Header */}
+    <>
+      {/* Mobile Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/20 z-40 md:hidden"
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div className="fixed md:absolute top-16 md:top-full left-4 right-4 md:left-auto md:right-0 md:mt-2 w-auto md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[70vh] md:max-h-[600px] flex flex-col">
+        {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-blue-600" />
@@ -183,5 +191,6 @@ export function NotificationPanel({
         </div>
       )}
     </div>
+    </>
   );
 }
