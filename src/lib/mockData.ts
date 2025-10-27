@@ -11,10 +11,67 @@ import {
   Service,
   ServiceWithRelations,
   DocumentType,
+  AuthUser,
+  UserRole,
 } from "./types";
 
 // =====================================================
-// MOCK USERS
+// MOCK SYSTEM USERS (BACKOFFICE/STAFF)
+// =====================================================
+
+export const mockSystemUsers: AuthUser[] = [
+  {
+    id: "sys1",
+    fullName: "Admin Sistema",
+    firstName: "Admin",
+    lastName: "Sistema",
+    email: "admin@lusio.market",
+    phone: "+351910000001",
+    areaCode: "+351",
+    active: true,
+    createdAt: "2024-01-01T00:00:00Z",
+    role: UserRole.ADMIN,
+  },
+  {
+    id: "sys2",
+    fullName: "Patricia Backoffice",
+    firstName: "Patricia",
+    lastName: "Backoffice",
+    email: "patricia@lusio.market",
+    phone: "+351910000002",
+    areaCode: "+351",
+    active: true,
+    createdAt: "2024-01-01T00:00:00Z",
+    role: UserRole.BACKOFFICE,
+  },
+  {
+    id: "sys3",
+    fullName: "Dra. Ana Advogada",
+    firstName: "Ana",
+    lastName: "Advogada",
+    email: "ana.advogada@lusio.market",
+    phone: "+351910000003",
+    areaCode: "+351",
+    active: true,
+    createdAt: "2024-01-01T00:00:00Z",
+    role: UserRole.ADVOGADA,
+  },
+  {
+    id: "sys4",
+    fullName: "João Visualizador",
+    firstName: "João",
+    lastName: "Visualizador",
+    email: "joao.visual@lusio.market",
+    phone: "+351910000004",
+    areaCode: "+351",
+    active: true,
+    createdAt: "2024-01-01T00:00:00Z",
+    role: UserRole.VISUALIZADOR,
+  },
+];
+
+// =====================================================
+// MOCK CLIENT USERS (CLIENTES DO SERVIÇO)
 // =====================================================
 
 const mockUsers: User[] = [

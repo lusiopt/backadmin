@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ServiceWithRelations, ServiceStatus } from "@/lib/types";
+import { ServiceWithRelations, ServiceStatus, Permission } from "@/lib/types";
 import { useServices } from "@/contexts/ServicesContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/pedidos/status-badge";
@@ -19,6 +20,7 @@ interface ServiceModalProps {
 
 export function ServiceModal({ service: initialService, open, onClose }: ServiceModalProps) {
   const { getService, updateService } = useServices();
+  const { hasPermission } = useAuth();
   const service = getService(initialService.id) || initialService;
 
   const [activeTab, setActiveTab] = useState("acoes");
@@ -153,19 +155,22 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               <TabsContent value="dados" className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Dados do Requerente</h3>
-                  {!isEditingClient ? (
-                    <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline">
-                      ✏️ Editar
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button onClick={handleSaveClientEdit} size="sm" className="bg-green-600 hover:bg-green-700">
-                        💾 Salvar
+                  {/* Only users with EDIT_SERVICE permission can edit */}
+                  {hasPermission(Permission.EDIT_SERVICE) && (
+                    !isEditingClient ? (
+                      <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline">
+                        ✏️ Editar
                       </Button>
-                      <Button onClick={() => setIsEditingClient(false)} size="sm" variant="outline">
-                        ❌ Cancelar
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button onClick={handleSaveClientEdit} size="sm" className="bg-green-600 hover:bg-green-700">
+                          💾 Salvar
+                        </Button>
+                        <Button onClick={() => setIsEditingClient(false)} size="sm" variant="outline">
+                          ❌ Cancelar
+                        </Button>
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -263,43 +268,46 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
               <TabsContent value="documentos" className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Documentos ({service.documents?.length || 0})</h3>
-                  <div>
-                    <input
-                      id={`file-upload-${service.id}`}
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        if (files.length > 0) {
-                          const newDocs = files.map((file, idx) => ({
-                            id: `doc_${Date.now()}_${idx}`,
-                            name: file.name,
-                            url: URL.createObjectURL(file),
-                            uploadedAt: new Date().toISOString(),
-                            serviceId: service.id,
-                          }));
-                          updateService(service.id, {
-                            documents: [...(service.documents || []), ...newDocs]
-                          });
-                          alert(`✅ ${files.length} arquivo(s) adicionado(s)!`);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                    <Button
-                      size="sm"
-                      className="text-xs"
-                      type="button"
-                      onClick={() => {
-                        const input = document.getElementById(`file-upload-${service.id}`) as HTMLInputElement;
-                        if (input) input.click();
-                      }}
-                    >
-                      📎 Adicionar Documentos
-                    </Button>
-                  </div>
+                  {/* Only users with UPLOAD_DOCUMENTS permission can upload */}
+                  {hasPermission(Permission.UPLOAD_DOCUMENTS) && (
+                    <div>
+                      <input
+                        id={`file-upload-${service.id}`}
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            const newDocs = files.map((file, idx) => ({
+                              id: `doc_${Date.now()}_${idx}`,
+                              name: file.name,
+                              url: URL.createObjectURL(file),
+                              uploadedAt: new Date().toISOString(),
+                              serviceId: service.id,
+                            }));
+                            updateService(service.id, {
+                              documents: [...(service.documents || []), ...newDocs]
+                            });
+                            alert(`✅ ${files.length} arquivo(s) adicionado(s)!`);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        className="text-xs"
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById(`file-upload-${service.id}`) as HTMLInputElement;
+                          if (input) input.click();
+                        }}
+                      >
+                        📎 Adicionar Documentos
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 {service.documents && service.documents.length > 0 ? (
                   <div className="space-y-2">
@@ -314,19 +322,23 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                           )}
                         </div>
                         <div className="flex gap-2">
-                          <button className="text-xs text-primary hover:underline">Ver</button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Remover ${doc.name}?`)) {
-                                updateService(service.id, {
-                                  documents: service.documents?.filter(d => d.id !== doc.id)
-                                });
-                              }
-                            }}
-                            className="text-xs text-red-600 hover:underline"
-                          >
-                            Remover
-                          </button>
+                          {hasPermission(Permission.VIEW_DOCUMENTS) && (
+                            <button className="text-xs text-primary hover:underline">Ver</button>
+                          )}
+                          {hasPermission(Permission.DELETE_DOCUMENTS) && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Remover ${doc.name}?`)) {
+                                  updateService(service.id, {
+                                    documents: service.documents?.filter(d => d.id !== doc.id)
+                                  });
+                                }
+                              }}
+                              className="text-xs text-red-600 hover:underline"
+                            >
+                              Remover
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -351,16 +363,27 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
 
               {/* TAB: Ações */}
               <TabsContent value="acoes" className="space-y-2 max-w-full sm:max-w-2xl mx-auto">
-                <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-                  <h3 className="font-semibold text-xs mb-1">📋 Instruções:</h3>
-                  <ol className="text-xs text-blue-900 space-y-0 ml-4 list-decimal leading-tight">
-                    <li>Revise e aprove os documentos</li>
-                    <li>Insira dados do IRN (Entidade e Referência)</li>
-                    <li>Aguarde cliente pagar e confirmar</li>
-                    <li>Confirme recebimento do governo</li>
-                    <li>Insira número do processo e senha</li>
-                  </ol>
-                </div>
+                {!hasPermission(Permission.CHANGE_STATUS) ? (
+                  <div className="bg-yellow-50 border border-yellow-300 rounded p-4 text-center">
+                    <p className="text-sm font-medium text-yellow-800">
+                      ⚠️ Você não tem permissão para alterar o status dos processos
+                    </p>
+                    <p className="text-xs text-yellow-700 mt-1">
+                      Apenas usuários com permissão adequada podem realizar ações no workflow.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                      <h3 className="font-semibold text-xs mb-1">📋 Instruções:</h3>
+                      <ol className="text-xs text-blue-900 space-y-0 ml-4 list-decimal leading-tight">
+                        <li>Revise e aprove os documentos</li>
+                        <li>Insira dados do IRN (Entidade e Referência)</li>
+                        <li>Aguarde cliente pagar e confirmar</li>
+                        <li>Confirme recebimento do governo</li>
+                        <li>Insira número do processo e senha</li>
+                      </ol>
+                    </div>
 
                 {/* Passo 1 */}
                 <div className="border rounded p-2">
@@ -489,6 +512,8 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                     <p className="text-xs text-green-700 mt-1">✓ Proc: {service.processNumber}</p>
                   )}
                 </div>
+                  </>
+                )}
               </TabsContent>
             </DialogBody>
           </Tabs>

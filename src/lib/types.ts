@@ -202,3 +202,110 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+// =====================================================
+// ROLES & PERMISSIONS
+// =====================================================
+
+export enum UserRole {
+  ADMIN = "admin",
+  BACKOFFICE = "backoffice",
+  ADVOGADA = "advogada",
+  VISUALIZADOR = "visualizador",
+}
+
+export enum Permission {
+  // Service permissions
+  VIEW_SERVICES = "view_services",
+  CREATE_SERVICE = "create_service",
+  EDIT_SERVICE = "edit_service",
+  DELETE_SERVICE = "delete_service",
+  CHANGE_STATUS = "change_status",
+
+  // Document permissions
+  VIEW_DOCUMENTS = "view_documents",
+  UPLOAD_DOCUMENTS = "upload_documents",
+  DELETE_DOCUMENTS = "delete_documents",
+
+  // User permissions
+  VIEW_USERS = "view_users",
+  MANAGE_USERS = "manage_users",
+
+  // Special permissions
+  VIEW_ALL_SERVICES = "view_all_services", // Ver todos os processos (não só os atribuídos)
+  ASSIGN_SERVICES = "assign_services", // Atribuir processos a outros usuários
+  VIEW_STATISTICS = "view_statistics", // Ver estatísticas e dashboards
+  EXPORT_DATA = "export_data", // Exportar dados
+}
+
+export interface RolePermissions {
+  role: UserRole;
+  permissions: Permission[];
+  description: string;
+}
+
+// Definição de permissões por role
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  [UserRole.ADMIN]: [
+    // Acesso total
+    Permission.VIEW_SERVICES,
+    Permission.CREATE_SERVICE,
+    Permission.EDIT_SERVICE,
+    Permission.DELETE_SERVICE,
+    Permission.CHANGE_STATUS,
+    Permission.VIEW_DOCUMENTS,
+    Permission.UPLOAD_DOCUMENTS,
+    Permission.DELETE_DOCUMENTS,
+    Permission.VIEW_USERS,
+    Permission.MANAGE_USERS,
+    Permission.VIEW_ALL_SERVICES,
+    Permission.ASSIGN_SERVICES,
+    Permission.VIEW_STATISTICS,
+    Permission.EXPORT_DATA,
+  ],
+  [UserRole.BACKOFFICE]: [
+    // Operação completa, exceto gerenciar usuários
+    Permission.VIEW_SERVICES,
+    Permission.CREATE_SERVICE,
+    Permission.EDIT_SERVICE,
+    Permission.CHANGE_STATUS,
+    Permission.VIEW_DOCUMENTS,
+    Permission.UPLOAD_DOCUMENTS,
+    Permission.DELETE_DOCUMENTS,
+    Permission.VIEW_USERS,
+    Permission.VIEW_ALL_SERVICES,
+    Permission.ASSIGN_SERVICES,
+    Permission.VIEW_STATISTICS,
+    Permission.EXPORT_DATA,
+  ],
+  [UserRole.ADVOGADA]: [
+    // Visualização + análise + mudança de status
+    Permission.VIEW_SERVICES,
+    Permission.EDIT_SERVICE,
+    Permission.CHANGE_STATUS,
+    Permission.VIEW_DOCUMENTS,
+    Permission.UPLOAD_DOCUMENTS,
+    Permission.VIEW_ALL_SERVICES,
+    Permission.VIEW_STATISTICS,
+  ],
+  [UserRole.VISUALIZADOR]: [
+    // Apenas leitura
+    Permission.VIEW_SERVICES,
+    Permission.VIEW_DOCUMENTS,
+    Permission.VIEW_STATISTICS,
+  ],
+};
+
+// User estendido com role
+export interface AuthUser extends User {
+  role: UserRole;
+}
+
+// Context de autenticação
+export interface AuthContextType {
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
+  hasPermission: (permission: Permission) => boolean;
+  hasAnyPermission: (permissions: Permission[]) => boolean;
+  hasAllPermissions: (permissions: Permission[]) => boolean;
+}

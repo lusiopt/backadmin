@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useServices } from "@/contexts/ServicesContext";
-import { ServiceStatus, ServiceWithRelations } from "@/lib/types";
+import { ServiceStatus, ServiceWithRelations, Permission } from "@/lib/types";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,9 @@ import { formatDate } from "@/lib/utils";
 import { StatsCards } from "@/components/stats/StatsCards";
 import { ProcessChart } from "@/components/charts/ProcessChart";
 import { RecentActivity } from "@/components/tables/RecentActivity";
+import { ProfileSwitcher } from "@/components/ProfileSwitcher";
+import { PermissionIndicator } from "@/components/PermissionIndicator";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Calendar,
   Download,
@@ -33,6 +36,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { services } = useServices();
+  const { user, hasPermission } = useAuth();
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"dashboard" | "list" | "by-user">("dashboard");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -309,13 +313,25 @@ export default function DashboardPage() {
                 <RefreshCw className="w-5 h-5 text-gray-600" />
               </button>
 
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Download className="w-5 h-5 text-gray-600" />
-              </button>
+              {/* Export - Only for users with EXPORT_DATA permission */}
+              {hasPermission(Permission.EXPORT_DATA) && (
+                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Exportar dados">
+                  <Download className="w-5 h-5 text-gray-600" />
+                </button>
+              )}
 
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Settings className="w-5 h-5 text-gray-600" />
-              </button>
+              {/* Settings - Only for admins */}
+              {hasPermission(Permission.MANAGE_USERS) && (
+                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Configurações">
+                  <Settings className="w-5 h-5 text-gray-600" />
+                </button>
+              )}
+
+              {/* Permission Indicator */}
+              <PermissionIndicator />
+
+              {/* Profile Switcher (Dev Mode) */}
+              <ProfileSwitcher />
 
               {/* User */}
               <div className="flex items-center gap-3 ml-3 pl-3 border-l border-gray-200">
@@ -710,15 +726,17 @@ export default function DashboardPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleServiceClick(service as ServiceWithRelations);
-                            }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                          >
-                            Ver Detalhes
-                          </button>
+                          {hasPermission(Permission.VIEW_SERVICES) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleServiceClick(service as ServiceWithRelations);
+                              }}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                              Ver Detalhes
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -895,15 +913,17 @@ export default function DashboardPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedService(service);
-                                }}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                              >
-                                Ver Detalhes
-                              </button>
+                              {hasPermission(Permission.VIEW_SERVICES) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedService(service);
+                                  }}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                >
+                                  Ver Detalhes
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}

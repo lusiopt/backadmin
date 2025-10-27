@@ -7,6 +7,176 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.5.0] - 2025-10-27
+
+### ✨ Adicionado
+
+#### Sistema de Roles e Permissões
+- Sistema completo de controle de acesso baseado em roles (RBAC)
+- 4 perfis de usuário implementados:
+  - **Admin** - Acesso total (14 permissões)
+  - **Backoffice** - Operações completas exceto gerenciar usuários (12 permissões)
+  - **Advogada** - Visualizar, editar, alterar status e documentos (7 permissões)
+  - **Visualizador** - Apenas leitura (3 permissões)
+- 14 permissões granulares definidas:
+  - `VIEW_SERVICES`, `CREATE_SERVICE`, `EDIT_SERVICE`, `DELETE_SERVICE`
+  - `CHANGE_STATUS`
+  - `VIEW_DOCUMENTS`, `UPLOAD_DOCUMENTS`, `DELETE_DOCUMENTS`
+  - `VIEW_USERS`, `MANAGE_USERS`
+  - `VIEW_ALL_SERVICES`, `ASSIGN_SERVICES`
+  - `VIEW_STATISTICS`, `EXPORT_DATA`
+
+#### AuthContext
+- Context React para gerenciamento de autenticação
+- Persistência de usuário selecionado em localStorage
+- Funções helper para verificação de permissões:
+  - `hasPermission(permission)` - Verifica permissão única
+  - `hasAnyPermission(permissions[])` - Verifica se tem qualquer uma das permissões
+  - `hasAllPermissions(permissions[])` - Verifica se tem todas as permissões
+- Carregamento automático do perfil Admin no primeiro acesso
+
+#### ProfileSwitcher (Dev Mode)
+- Componente para trocar entre perfis em desenvolvimento
+- Dropdown com os 4 usuários do sistema
+- Ícones específicos por role:
+  - 👑 Crown (Admin)
+  - 💼 Briefcase (Backoffice)
+  - 🛡️ Shield (Advogada)
+  - 👁️ Eye (Visualizador)
+- Cores distintas por role (roxo, azul, verde, cinza)
+- Badge de perfil atual no header
+- Aviso visual de "Modo Desenvolvimento"
+
+#### PermissionIndicator
+- Componente que exibe permissões ativas do usuário
+- Botão "Permissões" no header
+- Dropdown com grid de permissões
+- Badges verdes para permissões ativas
+- Ícones específicos para cada tipo de permissão
+- Dica informativa no rodapé
+
+#### Controle de UI Baseado em Permissões
+- Botão "Exportar" visível apenas com `EXPORT_DATA`
+- Botão "Configurações" visível apenas com `MANAGE_USERS`
+- Botão "Editar" no modal visível apenas com `EDIT_SERVICE`
+- Botão "Adicionar Documentos" visível apenas com `UPLOAD_DOCUMENTS`
+- Botão "Remover" documentos visível apenas com `DELETE_DOCUMENTS`
+- Tab "Ações" bloqueada para usuários sem `CHANGE_STATUS`
+- Mensagem de permissão negada para Visualizador na tab Ações
+
+### 🔧 Modificado
+
+#### Estrutura de Types
+- `src/lib/types.ts`:
+  - Adicionado enum `UserRole` com 4 roles
+  - Adicionado enum `Permission` com 14 permissões
+  - Adicionado `ROLE_PERMISSIONS` mapeando roles → permissões
+  - Criada interface `AuthUser` (User + role)
+  - Criada interface `AuthContextType`
+
+#### Mock Data
+- `src/lib/mockData.ts`:
+  - Adicionados 4 usuários sistema com roles:
+    - admin@lusio.market (Admin)
+    - patricia@lusio.market (Backoffice)
+    - ana.advogada@lusio.market (Advogada)
+    - joao.visual@lusio.market (Visualizador)
+
+#### Layout Principal
+- `src/app/layout.tsx`:
+  - Adicionado `<AuthProvider>` envolvendo a aplicação
+  - Provider posicionado entre QueryProvider e ServicesProvider
+
+#### Dashboard
+- `src/app/page.tsx`:
+  - Importado `useAuth()` e `Permission`
+  - Adicionados checks de permissão em botões do header
+  - Adicionados checks de permissão em botões "Ver Detalhes"
+  - Integrado `ProfileSwitcher` e `PermissionIndicator` no header
+
+#### Modal de Serviço
+- `src/components/pedidos/service-modal.tsx`:
+  - Importado `useAuth()` e `Permission`
+  - Botão "Editar" dados do cliente com check `EDIT_SERVICE`
+  - Botão "Adicionar Documentos" com check `UPLOAD_DOCUMENTS`
+  - Botão "Ver" documentos com check `VIEW_DOCUMENTS`
+  - Botão "Remover" documentos com check `DELETE_DOCUMENTS`
+  - Tab "Ações" com check `CHANGE_STATUS`
+  - Mensagem de bloqueio para usuários sem permissão
+
+### 📊 Comportamentos
+
+#### Perfil Admin
+- ✅ Vê todos os botões e funcionalidades
+- ✅ Pode criar, editar, excluir processos
+- ✅ Pode alterar status e gerenciar workflow
+- ✅ Pode adicionar e remover documentos
+- ✅ Acesso a configurações do sistema
+- ✅ Pode exportar dados
+
+#### Perfil Backoffice
+- ✅ Vê quase todos os botões exceto "Configurações"
+- ✅ Pode criar e editar processos
+- ❌ Não pode excluir processos
+- ✅ Pode alterar status e gerenciar workflow
+- ✅ Pode adicionar e remover documentos
+- ❌ Não pode gerenciar usuários
+- ✅ Pode exportar dados
+
+#### Perfil Advogada
+- ❌ Não vê botões "Exportar" e "Configurações"
+- ❌ Não pode criar processos
+- ✅ Pode editar dados dos clientes
+- ✅ Pode alterar status e gerenciar workflow
+- ✅ Pode adicionar documentos
+- ❌ Não pode remover documentos
+- ❌ Não pode exportar dados
+
+#### Perfil Visualizador
+- ❌ Não vê botões de ação no header
+- ✅ Pode visualizar processos
+- ❌ Não pode editar nada
+- ❌ Não pode alterar status (vê mensagem de bloqueio)
+- ❌ Não pode gerenciar documentos
+- ✅ Pode visualizar documentos
+- ✅ Pode ver estatísticas
+
+### 📝 Ícones Adicionados
+- `Crown` - Admin
+- `Briefcase` - Backoffice
+- `Shield` - Advogada/Permissões
+- `Eye` - Visualizador/Visualizar
+- `Edit` - Editar
+- `Trash2` - Excluir
+- `Upload` - Upload
+- `Download` - Download/Exportar
+- `Users` - Gerenciar Usuários
+- `BarChart3` - Estatísticas
+
+### 📦 Arquivos Criados
+1. `src/contexts/AuthContext.tsx` - Context de autenticação
+2. `src/components/ProfileSwitcher.tsx` - Seletor de perfil (dev)
+3. `src/components/PermissionIndicator.tsx` - Indicador de permissões
+4. `PERMISSION_TESTS.md` - Documentação de testes de permissões
+
+### 📦 Arquivos Modificados
+1. `src/lib/types.ts` - Adicionados types de roles e permissões
+2. `src/lib/mockData.ts` - Adicionados usuários sistema
+3. `src/app/layout.tsx` - Integrado AuthProvider
+4. `src/app/page.tsx` - Adicionados checks de permissões na UI
+5. `src/components/pedidos/service-modal.tsx` - Adicionados checks de permissões
+
+### 🔒 Segurança
+- Controle de acesso implementado na camada de apresentação
+- Verificações de permissão antes de exibir ações sensíveis
+- Sistema preparado para integração com backend real
+- Mock data para desenvolvimento seguro
+
+### 🐛 Corrigido
+- Nenhum bug reportado nesta versão
+
+---
+
 ## [0.4.0] - 2025-10-27
 
 ### ✨ Adicionado
@@ -186,14 +356,11 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## Roadmap Futuro
 
-### v0.5.0 (Planejado)
-- [ ] Estatísticas por usuário (quantos em cada status)
-- [ ] Exportação de dados (CSV/Excel)
-
 ### v0.6.0 (Planejado)
 - [ ] Integração com API real
 - [ ] Sistema de autenticação OAuth 2.0
-- [ ] Roles e permissões (admin, operador, visualizador)
+- [ ] Estatísticas por usuário (quantos em cada status)
+- [ ] Exportação de dados (CSV/Excel)
 
 ### v1.0.0 (Futuro)
 - [ ] Dashboard com gráficos e métricas
