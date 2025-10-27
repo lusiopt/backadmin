@@ -13,15 +13,12 @@ import { StatsCards } from "@/components/stats/StatsCards";
 import { ProcessChart } from "@/components/charts/ProcessChart";
 import { RecentActivity } from "@/components/tables/RecentActivity";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
-import { PermissionIndicator } from "@/components/PermissionIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Calendar,
-  Download,
   Filter,
   RefreshCw,
   Settings,
-  Bell,
   Search,
   ChevronRight,
   Users,
@@ -309,16 +306,10 @@ export default function DashboardPage() {
                   isRefreshing ? 'animate-spin' : ''
                 }`}
                 disabled={isRefreshing}
+                title="Atualizar dados"
               >
                 <RefreshCw className="w-5 h-5 text-gray-600" />
               </button>
-
-              {/* Export - Only for users with EXPORT_DATA permission */}
-              {hasPermission(Permission.EXPORT_DATA) && (
-                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Exportar dados">
-                  <Download className="w-5 h-5 text-gray-600" />
-                </button>
-              )}
 
               {/* Settings - Only for admins */}
               {hasPermission(Permission.MANAGE_USERS) && (
@@ -331,29 +322,9 @@ export default function DashboardPage() {
                 </button>
               )}
 
-              {/* Permission Indicator */}
-              <PermissionIndicator />
-
-              {/* Profile Switcher (Dev Mode) */}
-              <ProfileSwitcher />
-
-              {/* User */}
-              <div className="flex items-center gap-3 ml-3 pl-3 border-l border-gray-200">
-                <div className="relative">
-                  <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
-                    <Bell className="w-5 h-5 text-gray-600" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    E
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 hidden lg:block">
-                    Euclides
-                  </span>
-                </div>
+              {/* User Switcher (Shows current user and role) */}
+              <div className="ml-3 pl-3 border-l border-gray-200">
+                <ProfileSwitcher />
               </div>
             </div>
           </div>
