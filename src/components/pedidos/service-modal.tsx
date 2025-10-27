@@ -606,17 +606,6 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
                   </div>
                 ) : (
                   <>
-                    <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-                      <h3 className="font-semibold text-xs mb-1">📋 Instruções:</h3>
-                      <ol className="text-xs text-blue-900 space-y-0 ml-4 list-decimal leading-tight">
-                        <li>Revise e aprove os documentos</li>
-                        <li>Insira dados do IRN (Entidade e Referência)</li>
-                        <li>Aguarde cliente pagar e confirmar</li>
-                        <li>Confirme recebimento do governo</li>
-                        <li>Insira número do processo e senha</li>
-                      </ol>
-                    </div>
-
                 {/* Passo 1 */}
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
