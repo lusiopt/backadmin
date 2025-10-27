@@ -2,11 +2,21 @@ const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch({ headless: false });
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    ignoreHTTPSErrors: true,
+  });
+  const page = await context.newPage();
 
-  console.log('🔍 Testando https://dev.lusio.market/backadmin');
+  console.log('🔍 Testando https://dev.lusio.market/backadmin (SEM CACHE)');
 
-  await page.goto('https://dev.lusio.market/backadmin', { waitUntil: 'networkidle' });
+  // Force hard reload - bypass cache
+  await page.goto('https://dev.lusio.market/backadmin', {
+    waitUntil: 'networkidle',
+    timeout: 60000
+  });
+
+  // Hard reload to bypass cache
+  await page.reload({ waitUntil: 'networkidle' });
 
   // Aguardar um pouco para o JavaScript rodar
   await page.waitForTimeout(3000);

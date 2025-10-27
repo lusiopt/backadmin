@@ -1,0 +1,11 @@
+[0;34m=== Deploy Backadmin para DEV ===[0m
+
+[0;34m[1/3] Enviando alterações para GitHub...[0m
+ M deploy-output-final.log
+ M src/app/page.tsx
+ M src/contexts/AuthContext.tsx
+ M test-components-screenshot.png
+ M test-components.js
+?? deploy-perfis-output.log
+?? src/app/configuracoes/
+[1;33mHá mudanças não commitadas. Commitando...[0m

@@ -322,7 +322,11 @@ export default function DashboardPage() {
 
               {/* Settings - Only for admins */}
               {hasPermission(Permission.MANAGE_USERS) && (
-                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Configurações">
+                <button
+                  onClick={() => router.push("/configuracoes/perfis")}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Configurar Perfis e Permissões"
+                >
                   <Settings className="w-5 h-5 text-gray-600" />
                 </button>
               )}
