@@ -22,13 +22,14 @@ import {
   Settings,
   Search,
   ChevronRight,
-  Users,
+  Users as UsersIcon,
   FileText,
   ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  ChevronLeft
+  ChevronLeft,
+  Shield
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -45,6 +46,7 @@ export default function DashboardPage() {
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
   // Sorting
   const [sortColumn, setSortColumn] = useState<'name' | 'email' | 'status' | 'createdAt' | null>(null);
@@ -314,13 +316,56 @@ export default function DashboardPage() {
 
               {/* Settings - Only for admins */}
               {hasPermission(Permission.MANAGE_USERS) && (
-                <button
-                  onClick={() => router.push("/configuracoes/perfis")}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Configurar Perfis e Permissões"
-                >
-                  <Settings className="w-5 h-5 text-gray-600" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    title="Configurações"
+                  >
+                    <Settings className="w-5 h-5 text-gray-600" />
+                  </button>
+
+                  {showSettingsMenu && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowSettingsMenu(false)}
+                      />
+
+                      {/* Dropdown Menu */}
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                        <button
+                          onClick={() => {
+                            router.push("/configuracoes/usuarios");
+                            setShowSettingsMenu(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                        >
+                          <UsersIcon className="w-4 h-4 text-gray-600" />
+                          <div>
+                            <div className="font-medium text-gray-900">Usuários</div>
+                            <div className="text-xs text-gray-500">Gerenciar usuários do sistema</div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            router.push("/configuracoes/perfis");
+                            setShowSettingsMenu(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                        >
+                          <Shield className="w-4 h-4 text-gray-600" />
+                          <div>
+                            <div className="font-medium text-gray-900">Perfis</div>
+                            <div className="text-xs text-gray-500">Configurar permissões</div>
+                          </div>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
 
               {/* User Switcher (Shows current user and role) */}
