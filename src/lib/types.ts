@@ -296,9 +296,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ],
 };
 
-// User estendido com role
+// User estendido com role e senha (para gestão de usuários do sistema)
 export interface AuthUser extends User {
   role: UserRole;
+  password?: string; // Opcional - usado apenas para autenticação
 }
 
 // Context de autenticação
