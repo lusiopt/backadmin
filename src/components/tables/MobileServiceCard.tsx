@@ -28,7 +28,7 @@ export function MobileServiceCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-gray-900 truncate">
-            {service.user.fullName}
+            {service.user?.fullName || 'N/A'}
           </h3>
           <p className="text-xs text-gray-500 font-mono mt-0.5">
             ID: {service.id}
@@ -42,13 +42,17 @@ export function MobileServiceCard({
         {/* Email */}
         <div className="flex items-center gap-2 text-sm">
           <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <a
-            href={`mailto:${service.user.email}`}
-            className="text-blue-600 hover:underline truncate"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {service.user.email}
-          </a>
+          {service.user?.email ? (
+            <a
+              href={`mailto:${service.user.email}`}
+              className="text-blue-600 hover:underline truncate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {service.user.email}
+            </a>
+          ) : (
+            <span className="text-gray-400 truncate">N/A</span>
+          )}
         </div>
 
         {/* Data */}
