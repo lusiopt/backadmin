@@ -9,10 +9,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  // Initialize with Admin by default to avoid hydration mismatch
+  const [user, setUser] = useState<AuthUser | null>(mockSystemUsers[0]);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Load user from localStorage on mount (para desenvolvimento)
   useEffect(() => {
+    setIsMounted(true);
     const storedUser = localStorage.getItem("backadmin_user");
     if (storedUser) {
       try {
@@ -20,23 +23,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(parsed);
       } catch (e) {
         console.error("Error loading user from localStorage:", e);
+        // Keep default admin user
       }
     } else {
-      // Default: usar o Admin no primeiro acesso
-      const defaultUser = mockSystemUsers[0]; // Admin
-      setUser(defaultUser);
-      localStorage.setItem("backadmin_user", JSON.stringify(defaultUser));
+      // Save default Admin to localStorage
+      localStorage.setItem("backadmin_user", JSON.stringify(mockSystemUsers[0]));
     }
   }, []);
 
-  // Save user to localStorage when it changes
+  // Save user to localStorage when it changes (only after mounted)
   useEffect(() => {
-    if (user) {
+    if (isMounted && user) {
       localStorage.setItem("backadmin_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("backadmin_user");
     }
-  }, [user]);
+  }, [user, isMounted]);
 
   // Helper: Check if user has a specific permission
   const hasPermission = (permission: Permission): boolean => {
