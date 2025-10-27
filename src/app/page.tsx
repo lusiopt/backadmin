@@ -445,7 +445,7 @@ export default function DashboardPage() {
                   )}
                 </button>
 
-                <div className="relative z-[200]">
+                <div className={`relative ${showStatusFilter ? 'z-[300]' : 'z-10'}`}>
                   <button
                     onClick={() => setShowStatusFilter(!showStatusFilter)}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -459,7 +459,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showStatusFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200] max-h-[60vh] overflow-y-auto">
+                    <div className="fixed sm:absolute top-20 sm:top-full left-6 right-6 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-64 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200] max-h-[60vh] overflow-y-auto">
                       <div className="flex items-center justify-between mb-3 sm:hidden">
                         <span className="text-sm font-medium text-gray-700">Filtrar por Status</span>
                         <button
@@ -500,7 +500,7 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                <div className="relative z-[200]">
+                <div className={`relative ${showDateFilter ? 'z-[300]' : 'z-10'}`}>
                   <button
                     onClick={() => setShowDateFilter(!showDateFilter)}
                     className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -512,7 +512,7 @@ export default function DashboardPage() {
                   </button>
 
                   {showDateFilter && (
-                    <div className="fixed sm:absolute top-20 sm:top-full inset-x-4 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
+                    <div className="fixed sm:absolute top-20 sm:top-full left-6 right-6 sm:inset-x-auto sm:right-0 sm:left-auto sm:w-72 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[200]">
                       <div className="flex items-center justify-between mb-3 sm:hidden">
                         <span className="text-sm font-medium text-gray-700">Filtrar por Data</span>
                         <button
