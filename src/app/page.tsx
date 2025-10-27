@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [showPendingCommunications, setShowPendingCommunications] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceWithRelations | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
@@ -156,6 +157,12 @@ export default function DashboardPage() {
         }
       }
 
+      // Pending communications filter
+      if (showPendingCommunications) {
+        const unreadCount = getUnreadMessagesCount(service);
+        if (unreadCount === 0) return false;
+      }
+
       return true;
     });
 
@@ -193,7 +200,7 @@ export default function DashboardPage() {
     }
 
     return filtered;
-  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, sortColumn, sortDirection]);
+  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, showPendingCommunications, sortColumn, sortDirection, user]);
 
   // Paginated services for list view
   const paginatedServices = useMemo(() => {
@@ -417,6 +424,25 @@ export default function DashboardPage() {
 
               {/* Filter Buttons */}
               <div className="flex gap-2">
+                {/* Pending Communications Filter */}
+                <button
+                  onClick={() => setShowPendingCommunications(!showPendingCommunications)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
+                    showPendingCommunications
+                      ? 'bg-blue-50 border-blue-300 text-blue-700'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  title="Mostrar apenas processos com comunicações pendentes"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Comunicações Pendentes
+                  {showPendingCommunications && servicesWithNotifications.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                      {servicesWithNotifications.length}
+                    </span>
+                  )}
+                </button>
+
                 <div className="relative">
                   <button
                     onClick={() => setShowStatusFilter(!showStatusFilter)}

@@ -7,6 +7,52 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.5.1] - 2025-10-27
+
+### ✨ Adicionado
+
+#### Filtro de Comunicações Pendentes
+- Novo botão de filtro "Comunicações Pendentes" na barra de filtros
+- Ícone `MessageSquare` para identificação visual
+- Estilo toggle (branco/azul) indicando estado ativo/inativo
+- Badge dinâmico mostrando quantidade de processos com comunicações não lidas
+- Funciona em todas as visualizações (Dashboard, Lista, Por Usuário)
+
+### 🔧 Modificado
+
+#### Lógica de Filtragem
+- Integrado filtro de comunicações pendentes ao `filteredAndSortedServices`
+- Filtra processos baseado na função `getUnreadMessagesCount()`
+- Combinação com outros filtros (Status, Datas, Busca)
+- Dependências do useMemo atualizadas para incluir `showPendingCommunications` e `user`
+
+### 📊 Comportamentos
+
+#### Filtro de Comunicações Pendentes
+- ✅ Ativa/desativa com um clique no botão
+- ✅ Funciona independentemente (mostra apenas processos com mensagens não lidas)
+- ✅ Combina com filtro de Status (AND lógico)
+- ✅ Combina com filtro de Datas (AND lógico)
+- ✅ Combina com busca textual (AND lógico)
+- ✅ Badge mostra quantidade em tempo real
+- ✅ Visual claro: botão azul quando ativo, branco quando inativo
+
+### 📦 Arquivos Modificados
+- `src/app/page.tsx`:
+  - Adicionado state `showPendingCommunications`
+  - Implementada lógica de filtragem por mensagens não lidas
+  - Adicionado botão de filtro no header
+  - Atualizado useMemo dependencies
+
+### 📝 Testes Realizados
+- ✅ Filtro individual: 15 → 1 processo (Carlos Eduardo Mendes)
+- ✅ Combinação Status + Comunicações: filtragem correta (AND)
+- ✅ Busca + Comunicações: filtragem correta (AND)
+- ✅ Toggle ativo/inativo: mudança de cor do botão
+- ✅ Badge dinâmico: atualiza com quantidade correta
+
+---
+
 ## [0.5.0] - 2025-10-27
 
 ### ✨ Adicionado
