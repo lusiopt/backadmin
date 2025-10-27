@@ -32,10 +32,13 @@ Progresso: ██████████ 90%
 
 ### 2. Gestão de Processos
 - **Listagem completa** com paginação
-- **Filtros múltiplos** (status, data, busca)
+- **Filtros múltiplos** (status, datas, busca, comunicações pendentes)
+- **Filtro de Comunicações Pendentes** - toggle para mostrar apenas processos com mensagens não lidas
 - **Visualização por usuário** ou todos
 - **Detalhes expandidos** em modal
 - **Timeline do processo** visual
+- **Ordenação de colunas** (nome, email, status, data criação)
+- **Paginação configurável** (10, 25, 50, 100 itens por página)
 
 ### 3. Ações do Advogado
 - **Aprovar processo** com dados IRN
@@ -302,7 +305,7 @@ window.__REACT_QUERY_STATE__
 
 **Desenvolvedor:** Euclides Gomes + Claude Code
 **Última Atualização:** 27 Outubro 2025
-**Versão:** v0.2.0-config-consolidation
+**Versão:** v0.5.1
 
 ---
 
@@ -310,10 +313,30 @@ window.__REACT_QUERY_STATE__
 
 ## 🏷️ Versões
 
-- **v0.2.0-config-consolidation** (atual)
+- **v0.5.1** (atual - 27/10/2025)
+  - Filtro de Comunicações Pendentes
+  - Toggle visual com badge dinâmico
+  - Combinação com outros filtros (AND lógico)
+  - Deploy em dev: https://dev.lusio.market/backadmin
+
+- **v0.5.0** (27/10/2025)
+  - Sistema completo de roles e permissões (RBAC)
+  - 4 perfis: Admin, Backoffice, Advogada, Visualizador
+  - ProfileSwitcher e PermissionIndicator
+  - Controle de UI baseado em permissões
+
+- **v0.4.0**
+  - Sistema de ordenação de colunas
+  - Paginação completa
+
+- **v0.3.0**
+  - Visualização "Por Usuário"
+  - Filtros de status e data
+
+- **v0.2.0-config-consolidation**
   - Sistema de configurações consolidado com tabs
   - Permissões por fase implementadas
   - Botões "Selecionar Todos" por categoria
 
-- **v1.0.0-stable**
-  - Versão inicial estável do dashboard
+- **v0.1.0**
+  - Versão inicial do dashboard
