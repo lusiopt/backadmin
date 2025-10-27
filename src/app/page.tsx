@@ -350,7 +350,7 @@ export default function DashboardPage() {
               {/* Actions */}
               <button
                 onClick={handleRefresh}
-                className={`p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                className={`p-1 sm:p-1.5 md:p-2 rounded-lg hover:bg-gray-100 transition-colors ${
                   isRefreshing ? 'animate-spin' : ''
                 }`}
                 disabled={isRefreshing}
@@ -363,7 +363,7 @@ export default function DashboardPage() {
               <div className="relative">
                 <button
                   onClick={() => setShowNotificationPanel(!showNotificationPanel)}
-                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  className="p-1 sm:p-1.5 md:p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
                   title={`${totalUnreadMessages} notificação${totalUnreadMessages !== 1 ? 'ões' : ''} não lida${totalUnreadMessages !== 1 ? 's' : ''}`}
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -390,11 +390,11 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Settings - Only for admins - Hidden on smallest mobile */}
+              {/* Settings - Only for admins - Now visible on mobile */}
               {hasPermission(Permission.MANAGE_USERS) && (
                 <button
                   onClick={() => router.push("/configuracoes")}
-                  className="hidden sm:block p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1 sm:p-1.5 md:p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Configurações"
                 >
                   <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -402,7 +402,7 @@ export default function DashboardPage() {
               )}
 
               {/* User Switcher (Shows current user and role) - Compact on mobile */}
-              <div className="ml-1 sm:ml-3 pl-1 sm:pl-3 border-l border-gray-200">
+              <div className="ml-0.5 sm:ml-2 md:ml-3 pl-0.5 sm:pl-2 md:pl-3 border-l border-gray-200">
                 <ProfileSwitcher />
               </div>
             </div>

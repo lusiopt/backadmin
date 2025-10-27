@@ -53,16 +53,16 @@ export function ProfileSwitcher() {
       {/* Current User Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+        className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${
           roleColors[user.role]
         } hover:opacity-80 transition-opacity text-sm font-medium`}
       >
-        <RoleIcon className="w-4 h-4" />
+        <RoleIcon className="w-3 h-3 sm:w-4 sm:h-4" />
         <div className="flex flex-col items-start">
-          <span className="text-xs opacity-75">Perfil Atual</span>
-          <span className="font-semibold">{roleLabels[user.role]}</span>
+          <span className="text-xs opacity-75 hidden sm:inline">Perfil Atual</span>
+          <span className="font-semibold text-xs sm:text-sm">{roleLabels[user.role]}</span>
         </div>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {/* Dropdown Menu */}
